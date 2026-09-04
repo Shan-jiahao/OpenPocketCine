@@ -18,4 +18,9 @@ Never store secrets, camera credentials, captures, or personal data here.
 
 - Secret configuration locations and handling rules are documented in
   `SECURITY.md`; values must not be copied here.
+- Apple Personal Teams cannot provision the Hotspot Configuration capability.
+  For local device-only debugging, use a temporary empty entitlements file and
+  a developer-owned bundle identifier at build time. Keep the checked-in
+  Hotspot entitlement and production bundle identifier for the paid team/App
+  Store build.
 - Remove obsolete entries through a reviewed change to this file.
