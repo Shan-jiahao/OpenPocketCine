@@ -23,4 +23,8 @@ Never store secrets, camera credentials, captures, or personal data here.
   a developer-owned bundle identifier at build time. Keep the checked-in
   Hotspot entitlement and production bundle identifier for the paid team/App
   Store build.
+- 2026-09-04: The manual SoftAP fallback was hardware-validated with a Pocket 4
+  Pro: when the phone already has a `192.168.2.x` camera path, skipping
+  `NEHotspotConfiguration.apply` allows the existing UDP/DUML connection to
+  continue under a Personal Team build.
 - Remove obsolete entries through a reviewed change to this file.
