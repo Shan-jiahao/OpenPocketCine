@@ -373,11 +373,12 @@ struct MediaLibraryView: View {
     private var headerItemCountLabel: String {
         if session.mediaFetchInProgress {
             return session.mediaFetchListedCount == 0
-                ? "Scanning…"
-                : "Listing… \(session.mediaFetchListedCount) found"
+                ? "Scanning…".opcLocalized
+                : String(
+                    format: "Listing… %d found".opcLocalized,
+                    session.mediaFetchListedCount)
         }
-        let count = displayedFiles.count
-        return "\(count) item\(count == 1 ? "" : "s")"
+        return String(format: "%d items".opcLocalized, displayedFiles.count)
     }
 
     private var gridColumns: [GridItem] {
@@ -538,7 +539,7 @@ struct MediaLibraryView: View {
                 tab.opcIcon
                     .frame(width: 12, height: 12)
                     .frame(width: 16)
-                Text(tab.rawValue)
+                Text(tab.rawValue.opcLocalized)
                     .font(LiveType.ui(size: 12, weight: active ? .semibold : .medium))
                 Spacer(minLength: 0)
             }
@@ -568,7 +569,7 @@ struct MediaLibraryView: View {
                             .kerning(0.8)
                             .foregroundStyle(LiveDesign.muted)
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Text(category.headerTitle)
+                            Text(category.headerTitle.opcLocalized)
                                 .font(LiveType.ui(size: 26, weight: .semibold))
                                 .foregroundStyle(LiveDesign.text)
                             Text("·")
@@ -611,7 +612,7 @@ struct MediaLibraryView: View {
     private var selectionHeader: some View {
         HStack(spacing: 12) {
             CloseButton(action: exitSelectionMode, size: 37)
-            Text("\(selectedIDs.count) selected")
+            Text(String(format: "%d selected".opcLocalized, selectedIDs.count))
                 .font(LiveType.ui(size: 20, weight: .semibold))
                 .foregroundStyle(LiveDesign.text)
             Spacer(minLength: 8)
@@ -814,7 +815,7 @@ struct MediaLibraryView: View {
         title: String, @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(title)
+            Text(title.opcLocalized)
                 .font(.system(size: 9, weight: .bold, design: .monospaced))
                 .foregroundStyle(LiveDesign.muted)
             content()
@@ -931,10 +932,13 @@ struct MediaLibraryView: View {
                     .frame(width: 40, height: 40)
                     .foregroundStyle(LiveDesign.faint)
             }
-            Text(model.session.mediaFetchInProgress ? "Listing clips" : "No clips yet")
-                .font(LiveType.ui(size: 15, weight: .medium))
-                .foregroundStyle(LiveDesign.muted)
-            Text(model.session.mediaNote ?? emptySubtitle)
+            Text(
+                (model.session.mediaFetchInProgress ? "Listing clips" : "No clips yet")
+                    .opcLocalized
+            )
+            .font(LiveType.ui(size: 15, weight: .medium))
+            .foregroundStyle(LiveDesign.muted)
+            Text((model.session.mediaNote ?? emptySubtitle).opcLocalized)
                 .font(LiveType.ui(size: 12))
                 .foregroundStyle(LiveDesign.faint)
                 .multilineTextAlignment(.center)
@@ -953,8 +957,10 @@ struct MediaLibraryView: View {
                 .foregroundStyle(LiveDesign.muted)
             Text(
                 session.mediaFetchListedCount == 0
-                    ? "Querying card storage…"
-                    : "\(session.mediaFetchListedCount) clip\(session.mediaFetchListedCount == 1 ? "" : "s") found so far"
+                    ? "Querying card storage…".opcLocalized
+                    : String(
+                        format: "%d clips found so far".opcLocalized,
+                        session.mediaFetchListedCount)
             )
             .font(LiveType.ui(size: 12))
             .foregroundStyle(LiveDesign.faint)
@@ -1114,7 +1120,7 @@ private struct MediaActionPill: View {
             HStack(spacing: 5) {
                 icon
                     .frame(width: 10, height: 10)
-                Text(title)
+                Text(title.opcLocalized)
                     .font(.system(size: 9.5, weight: .bold, design: .monospaced))
                     .lineLimit(1)
             }
@@ -1136,7 +1142,7 @@ private struct MediaFilterChip: View {
 
     var body: some View {
         Button(action: action) {
-            Text(title)
+            Text(title.opcLocalized)
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
@@ -1319,7 +1325,7 @@ private struct MediaClipListRow: View {
             } else if cacheGrade.isProxyOnly {
                 ZStack {
                     Color.black.opacity(0.28)
-                    Text(MediaLibraryCopy.proxyTag)
+                    Text(MediaLibraryCopy.proxyTag.opcLocalized)
                         .font(.system(size: 9, weight: .bold, design: .rounded))
                         .foregroundStyle(LiveDesign.text)
                         .padding(.horizontal, 6)
@@ -1441,7 +1447,7 @@ private struct MediaClipCell: View {
             )
             .overlay(alignment: .topLeading) {
                 if cacheGrade.isProxyOnly, cacheProgress == nil, !isSelecting {
-                    Text(MediaLibraryCopy.proxyTag)
+                    Text(MediaLibraryCopy.proxyTag.opcLocalized)
                         .font(.system(size: 10, weight: .bold, design: .rounded))
                         .foregroundStyle(LiveDesign.text)
                         .padding(.horizontal, 6)

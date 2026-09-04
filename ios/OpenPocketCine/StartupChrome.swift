@@ -149,7 +149,7 @@ struct StartupHeader: View {
                     .tracking(1.3)
                     .foregroundStyle(StartupColors.muted)
                 HStack(alignment: .firstTextBaseline, spacing: 14) {
-                    Text(title)
+                    Text(title.opcLocalized)
                         .font(LiveType.ui(size: 17, weight: .bold, design: .rounded))
                         .foregroundStyle(StartupColors.ink)
                         .lineLimit(1)
@@ -175,7 +175,7 @@ struct StartupHeader: View {
                 Circle()
                     .fill(statusColor)
                     .frame(width: 7, height: 7)
-                Text(statusTitle)
+                Text(statusTitle.opcLocalized)
                     .font(LiveType.ui(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(statusColor)
                     .lineLimit(1)
@@ -243,7 +243,7 @@ struct StartupWizardProgress: View {
     var body: some View {
         VStack(alignment: .leading, spacing: compact ? 6 : 8) {
             HStack(spacing: 6) {
-                Text(compact ? "Setup" : "Set up your first camera")
+                Text((compact ? "Setup" : "Set up your first camera").opcLocalized)
                     .font(LiveType.ui(size: compact ? 10 : 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(StartupColors.muted)
                 Spacer(minLength: 0)
@@ -292,7 +292,7 @@ struct StartupWizardPrepareCards: View {
                                 .stroke(StartupColors.accent.opacity(0.45), lineWidth: 1)
                         )
 
-                    Text(step)
+                    Text(step.opcLocalized)
                         .font(LiveType.ui(size: tight ? 12 : 14, weight: .medium, design: .rounded))
                         .foregroundStyle(StartupColors.ink)
                         .lineSpacing(1)
@@ -613,7 +613,7 @@ struct StartupShareDiagnosticsButton: View {
                 payload = DiagnosticSharePayload(url: url)
             }
         } label: {
-            Text(StartupConnectionCopy.shareDiagnostics)
+            Text(StartupConnectionCopy.shareDiagnostics.opcLocalized)
         }
         .buttonStyle(StartupWizardOutlineButtonStyle())
         .sheet(item: $payload) { item in

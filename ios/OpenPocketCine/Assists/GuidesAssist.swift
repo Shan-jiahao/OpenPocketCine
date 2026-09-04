@@ -161,7 +161,7 @@ private struct GuidesSegmentedButtons: View {
                 Button {
                     onSelect(item)
                 } label: {
-                    Text(item)
+                    Text(item.opcLocalized)
                         .font(LiveType.ui(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(item == selected ? LiveDesign.accent : LiveDesign.muted)
                         .frame(maxWidth: .infinity)
@@ -183,7 +183,7 @@ private struct GuidesGlassChoice: View {
     var isSelected = false
 
     var body: some View {
-        Text(title)
+        Text(title.opcLocalized)
             .font(.system(size: 14, weight: .medium, design: .monospaced))
             .lineLimit(1)
             .minimumScaleFactor(0.8)
@@ -210,7 +210,7 @@ private struct GuidesToggleRow: View {
 
     var body: some View {
         HStack {
-            Text(title)
+            Text(title.opcLocalized)
                 .font(LiveType.ui(size: 16, weight: .semibold, design: .rounded))
             Spacer()
             Group {

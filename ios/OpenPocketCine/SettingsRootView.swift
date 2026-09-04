@@ -884,7 +884,7 @@ struct SettingsRootView: View {
 
     private var cacheSizeLabel: String {
         let bytes = model.session.mediaCacheByteCount()
-        if bytes == 0 { return "Empty" }
+        if bytes == 0 { return "Empty".opcLocalized }
         return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
     }
 
@@ -954,14 +954,14 @@ struct SettingsRootView: View {
                 help: SettingsHelpCopy.themeHelp,
                 showTopDivider: false
             ) {
-                SettingsValueText(value: "DJI Black")
+                SettingsValueText(value: "DJI Black".opcLocalized)
             }
             SettingsInlineRow(
                 title: "Protocol Implementation",
                 help:
                     "Camera control speaks DUML over Bluetooth and the camera's Wi-Fi. No DJI SDK is bundled or required."
             ) {
-                SettingsValueText(value: "DUML / BLE + Wi-Fi")
+                SettingsValueText(value: "DUML / BLE + Wi-Fi".opcLocalized)
             }
             SettingsInlineRow(
                 title: "App Version",
@@ -996,7 +996,8 @@ struct CleanViewPinStrip: View {
                 }
                 .accessibilityLabel("Keep \(tool.displaySettingsTitle) in clean view")
                 .accessibilityValue(
-                    model.assist.cleanViewPinnedTools.contains(tool) ? "On" : "Off")
+                    (model.assist.cleanViewPinnedTools.contains(tool) ? "On" : "Off")
+                        .opcLocalized)
             }
         }
     }

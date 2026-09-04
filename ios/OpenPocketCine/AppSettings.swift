@@ -574,7 +574,7 @@ struct SettingsSegmented: View {
                     OperatorSettingsHaptics.selection(enabled: OperatorPrefs.hapticsEnabled)
                     onSelect(option)
                 } label: {
-                    Text(option)
+                    Text(option.opcLocalized)
                         .font(
                             LiveType.ui(
                                 size: stacked ? 12 : 11, weight: active ? .semibold : .medium)
@@ -850,7 +850,7 @@ struct SettingsDashScale: View {
             Text(title.opcLocalized)
                 .font(LiveType.ui(size: 13, weight: .semibold))
                 .foregroundStyle(LiveDesign.text)
-            Text(caption)
+            Text(caption.opcLocalized)
                 .font(.system(size: 11.5, weight: .medium, design: .monospaced))
                 .foregroundStyle(LiveDesign.muted)
             HStack(spacing: 0) {
@@ -882,7 +882,7 @@ struct SettingsDashScale: View {
     }
 
     private var marker: some View {
-        Text(bandName)
+        Text(bandName.opcLocalized)
             .font(.system(size: 9.5, weight: .bold, design: .monospaced))
             .kerning(0.5)
             .foregroundStyle(bandColor)
@@ -901,7 +901,7 @@ struct SettingsDashScale: View {
 
     private func legend(_ name: String, _ sub: String) -> some View {
         HStack(spacing: 4) {
-            Text(name)
+            Text(name.opcLocalized)
                 .font(LiveType.ui(size: 10, weight: .semibold))
                 .foregroundStyle(LiveDesign.muted)
             Text(sub)
@@ -970,12 +970,12 @@ struct SettingsLiveTile: View {
                 .frame(width: 8, height: 8)
                 .shadow(color: tint.opacity(0.7), radius: 8)
             VStack(alignment: .leading, spacing: 2) {
-                Text(isLinked ? "Active Link" : "No Link")
+                Text((isLinked ? "Active Link" : "No Link").opcLocalized)
                     .font(LiveType.ui(size: 12, weight: .semibold))
                     .foregroundStyle(LiveDesign.text)
                     .lineLimit(1)
                     .fixedSize()
-                Text(isLinked ? detail : model.session.phase.label)
+                Text(isLinked ? detail : model.session.phase.opcLocalizedLabel)
                     .font(.system(size: 10.5, weight: .medium, design: .monospaced))
                     .foregroundStyle(LiveDesign.muted)
                     .lineLimit(1)

@@ -121,7 +121,7 @@ private struct GridLongPressMenu: View {
 
     /// OpenZCine `GlassChoice` used by `GridToggle`.
     private func gridChoice(_ title: String, isOn: Bool) -> some View {
-        Text(title)
+        Text(title.opcLocalized)
             .font(.system(size: 14, weight: .medium, design: .monospaced))
             .lineLimit(1)
             .minimumScaleFactor(0.8)

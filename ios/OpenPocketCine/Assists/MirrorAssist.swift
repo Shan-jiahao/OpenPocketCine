@@ -42,7 +42,7 @@ struct MirrorLongPressMenu: View {
     var compact: Bool = false
 
     var body: some View {
-        Text(MirrorAssist.explanation)
+        Text(MirrorAssist.explanation.opcLocalized)
             .font(LiveType.ui(size: compact ? 11 : 13))
             .foregroundStyle(LiveDesign.muted)
             .frame(maxWidth: .infinity, alignment: .leading)

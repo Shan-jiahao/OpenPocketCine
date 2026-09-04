@@ -1780,7 +1780,7 @@ struct AssistToolChip: View {
         VStack(spacing: 3) {
             AssistToolIcon(tool: tool, size: 19)
                 .frame(height: 23)
-            Text(tool.rawValue)
+            Text(tool.rawValue.opcLocalized)
                 .font(.system(size: 9, weight: .medium, design: .monospaced))
                 .tracking(0.9)
                 .lineLimit(1)

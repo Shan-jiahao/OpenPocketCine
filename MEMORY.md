@@ -16,6 +16,9 @@ Never store secrets, camera credentials, captures, or personal data here.
 - 2026-09-04: Keep English source strings as the fallback and ship Simplified
   Chinese through `zh-Hans` localization resources so the interface follows the
   device language without maintaining a separate Chinese UI implementation.
+- 2026-09-04: Simplified Chinese copy should explain specialist terms in plain
+  Chinese while retaining useful industry abbreviations such as BLE, HEVC,
+  DUML, LUT, IRE, ETTR, ISO, and FPS for cross-reference with camera menus.
 
 ## Operations
 
