@@ -254,7 +254,11 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         if auth == .denied || auth == .restricted {
             if !didToastNeedPods {
                 didToastNeedPods = true
-                model?.session.controlNote = "Allow Motion & Fitness for OpenPocketCine in Settings"
+                let name =
+                    Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+                    ?? "OpenPocketCine"
+                model?.session.controlNote = String(
+                    format: "Allow Motion & Fitness for %@ in Settings".opcLocalized, name)
             }
             return
         }

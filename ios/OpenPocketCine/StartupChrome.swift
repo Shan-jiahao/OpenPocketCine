@@ -247,9 +247,13 @@ struct StartupWizardProgress: View {
                     .font(LiveType.ui(size: compact ? 10 : 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(StartupColors.muted)
                 Spacer(minLength: 0)
-                Text("Step \(currentStep) of \(totalSteps)")
-                    .font(LiveType.ui(size: compact ? 10 : 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(StartupColors.dim)
+                Text(
+                    String(
+                        format: "Step %@ of %@".opcLocalized,
+                        "\(currentStep)", "\(totalSteps)")
+                )
+                .font(LiveType.ui(size: compact ? 10 : 11, weight: .medium, design: .rounded))
+                .foregroundStyle(StartupColors.dim)
             }
             HStack(spacing: compact ? 4 : 8) {
                 ForEach(1...totalSteps, id: \.self) { step in

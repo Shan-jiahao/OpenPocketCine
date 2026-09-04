@@ -136,6 +136,13 @@
 "Automatic Wi-Fi join is unavailable in this development build. Connect in iPhone Settings, then return here." = "此开发版本无法自动加入 Wi-Fi。请在 iPhone“设置”中连接相机网络，然后返回这里。";
 "iOS couldn't join %@ automatically. Open Settings → Wi-Fi, connect to %@, then return to the app." = "iOS 无法自动加入 %@。请打开“设置”→“无线局域网”，连接 %@，然后返回 App。";
 "the camera network" = "相机网络";
+"Head lock cleared" = "头部锁定已清除";
+"Head tracking needs AirPods in your ears" = "请佩戴支持动态头部跟踪的 AirPods";
+"Head tracking waiting for gimbal" = "正在等待云台姿态数据";
+"Hold still to set forward" = "请保持头部静止，以设定正前方";
+"Head lock set — gimbal follows" = "头部锁定已设定，云台开始跟随";
+"Head tracking needs AirPods with motion" = "需要支持动态头部跟踪的 AirPods";
+"Allow Motion & Fitness for %@ in Settings" = "请在系统“设置”中允许“%@”访问“运动与健身”";
 "Turn the camera on and wait until Bluetooth is up." = "打开相机并等待蓝牙启动。";
 "Tap the camera in the list when it appears." = "相机出现在列表中后点击它。";
 "If the Pocket asks you to Approve, tap it on the camera screen." = "如果 Pocket 要求确认，请在相机屏幕上点击确认。";
