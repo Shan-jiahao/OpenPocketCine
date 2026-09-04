@@ -63,6 +63,14 @@ public enum CameraSoftAPSwitch {
         secondsLeft > joinRetryPauseSeconds
     }
 
+    /// A manually joined camera AP is already usable even when the app's signing team cannot
+    /// provision Hotspot Configuration. A visible different SSID still requires a real switch.
+    public static func shouldUseExistingPath(
+        pathReady: Bool, currentSSID: String?, target: String
+    ) -> Bool {
+        pathReady && isOnTarget(currentSSID: currentSSID, target: target)
+    }
+
     /// Do not abort because the phone still has a camera DHCP address.
     public static func shouldAbortBecausePathStillReady(_ pathReady: Bool) -> Bool {
         _ = pathReady

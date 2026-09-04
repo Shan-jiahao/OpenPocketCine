@@ -42,6 +42,16 @@ enum WiFiJoiner {
         knownOtherSSIDs: [String],
         persist: Bool = false
     ) async throws {
+        let current = await currentSSID()
+        if CameraSoftAPSwitch.shouldUseExistingPath(
+            pathReady: isCameraPathReady(), currentSSID: current, target: ssid)
+        {
+            journal(
+                "wifi: using existing camera path (current=\(current ?? "hidden")) target=\(ssid)"
+            )
+            return
+        }
+
         var kick = Set(knownOtherSSIDs.filter { !$0.isEmpty && $0 != ssid })
         leave(ssids: Array(kick))
         await leaveOtherOsmoSoftAPs(except: ssid)
