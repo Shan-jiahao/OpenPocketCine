@@ -23,6 +23,11 @@ The feature reuses the existing camera session, datalink, gimbal-stick stream,
 4. Hold still and tap **CALIBRATE HEAD LOCK**.
 5. Use **STOP** to clear the lock and rest the gimbal immediately.
 
+For a Personal Team development build, iOS cannot grant the Hotspot
+Configuration entitlement. If automatic join is unavailable, the Wi-Fi step
+shows the exact camera SSID and waits while the operator joins it in Settings;
+returning to the app resumes the existing BLE → datalink flow automatically.
+
 The page shows live head, gimbal, and target yaw/pitch plus Sensitivity, Dead
 Zone, Smoothness, and Max Speed controls. The video surface is not required to
 be visible while this page is open.

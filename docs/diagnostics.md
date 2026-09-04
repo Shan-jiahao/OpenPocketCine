@@ -47,7 +47,8 @@ dump (`PERFORMANCE.md`).
 
 The connect spine journals itself: `creds:` (source, cached or from BLE,
 GetSSID / GetPassword attempts), `wifi:` (hotspot apply result with the
-`NEHotspotConfiguration` error code, DHCP wait, current SSID on a miss), and
+`NEHotspotConfiguration` error code, automatic-to-manual fallback, DHCP wait,
+current SSID on a miss), and
 `session: connect failed at <phase>` with the operator string. A report whose
 phase is `joiningWifi` must carry the line that says why (#235).
 

@@ -28,7 +28,10 @@ First pair is the wizard in `ConnectionSetupView` (Android matches):
 2. BLE scan → tap a row.
 3. Approve on the Pocket if asked.
 4. Join camera Wi-Fi (OS prompt — do not hide it). On 5.8 GHz the camera AP
-   can take about a minute to appear; both shells keep trying (#235).
+   can take about a minute to appear; both shells keep trying (#235). An iOS
+   development build without Hotspot Configuration shows the target SSID and
+   waits for a manual Settings → Wi-Fi join. Returning to the app continues
+   automatically; the operator does not restart pairing.
 5. Datalink → live picture.
 
 Empty store: the wizard fills the viewport. After a successful pair, the camera

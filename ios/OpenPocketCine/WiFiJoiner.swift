@@ -14,17 +14,29 @@ import OpenPocketViewCore
 enum WiFiJoiner {
     enum JoinError: LocalizedError {
         case failed(String)
+        case automaticJoinUnavailable(String)
         case pathNotReady
         case stillOnOtherBody(String)
         var errorDescription: String? {
             switch self {
             case .failed(let s):
                 "couldn't join camera Wi-Fi (\(s)). \(CameraSoftAPSwitch.frequencyHint)"
+            case .automaticJoinUnavailable(let ssid):
+                String(
+                    format:
+                        "iOS couldn't join %@ automatically. Open Settings → Wi-Fi, connect to %@, then return to the app."
+                        .opcLocalized,
+                    ssid, ssid)
             case .pathNotReady:
                 "camera Wi-Fi joined but 192.168.2.x never appeared. \(CameraSoftAPSwitch.frequencyHint)"
             case .stillOnOtherBody(let ssid):
                 "couldn't switch from \(ssid) — tap Connect again"
             }
+        }
+
+        var shouldInvalidateCachedCredentials: Bool {
+            if case .automaticJoinUnavailable = self { return false }
+            return true
         }
     }
 
@@ -40,7 +52,8 @@ enum WiFiJoiner {
         passphrase: String,
         wpa3: Bool,
         knownOtherSSIDs: [String],
-        persist: Bool = false
+        persist: Bool = false,
+        onManualJoinRequired: (@MainActor (String) -> Void)? = nil
     ) async throws {
         let current = await currentSSID()
         if CameraSoftAPSwitch.shouldUseExistingPath(
@@ -62,6 +75,7 @@ enum WiFiJoiner {
         while true {
             attempt += 1
             try Task.checkCancellation()
+            if await useExistingCameraPath(target: ssid, source: "retry") { return }
             if let foreign = CameraSoftAPSwitch.ssidToKick(
                 currentSSID: await currentSSID(), target: ssid)
             {
@@ -85,9 +99,15 @@ enum WiFiJoiner {
                 lastError = JoinError.stillOnOtherBody(now ?? "other camera")
             } catch is CancellationError {
                 throw CancellationError()
+            } catch JoinError.automaticJoinUnavailable {
+                journal("wifi: automatic join unavailable — waiting for manual join to \(ssid)")
+                await onManualJoinRequired?(ssid)
+                try await waitForManualCameraJoin(ssid: ssid, deadline: deadline)
+                return
             } catch {
                 lastError = error
             }
+            if await useExistingCameraPath(target: ssid, source: "after apply") { return }
             let left = deadline.timeIntervalSinceNow
             guard CameraSoftAPSwitch.shouldRetryJoin(secondsLeft: left) else { throw lastError }
             // 5.8 GHz DFS: the AP may not beacon yet. Drop the config so the
@@ -98,6 +118,27 @@ enum WiFiJoiner {
             leave(ssid: ssid)
             try await Task.sleep(for: .seconds(CameraSoftAPSwitch.joinRetryPauseSeconds))
         }
+    }
+
+    private static func useExistingCameraPath(target ssid: String, source: String) async -> Bool {
+        let current = await currentSSID()
+        guard
+            CameraSoftAPSwitch.shouldUseExistingPath(
+                pathReady: isCameraPathReady(), currentSSID: current, target: ssid)
+        else { return false }
+        journal(
+            "wifi: using existing camera path (current=\(current ?? "hidden")) target=\(ssid) source=\(source)"
+        )
+        return true
+    }
+
+    private static func waitForManualCameraJoin(ssid: String, deadline: Date) async throws {
+        while Date() < deadline {
+            try Task.checkCancellation()
+            if await useExistingCameraPath(target: ssid, source: "manual join") { return }
+            try await Task.sleep(for: .milliseconds(250))
+        }
+        throw JoinError.automaticJoinUnavailable(ssid)
     }
 
     static func currentSSID() async -> String? {
@@ -131,6 +172,15 @@ enum WiFiJoiner {
                     {
                         journal("wifi: apply \(ssid) already associated")
                         c.resume()
+                        return
+                    }
+                    if error.domain == NEHotspotConfigurationErrorDomain,
+                        error.code == NEHotspotConfigurationError.internal.rawValue
+                    {
+                        journal(
+                            "wifi: apply \(ssid) unavailable \(error.domain) \(error.code) \(error.localizedDescription)"
+                        )
+                        c.resume(throwing: JoinError.automaticJoinUnavailable(ssid))
                         return
                     }
                     journal(

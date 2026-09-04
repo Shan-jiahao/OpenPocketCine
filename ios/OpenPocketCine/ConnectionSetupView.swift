@@ -264,12 +264,21 @@ struct ConnectionSetupView: View {
                     title: "On iPhone",
                     icon: .smartphone,
                     steps: [
-                        "Tap Join when iOS asks to join the camera network",
-                        "Stay on this screen until we open the datalink",
+                        "If iOS shows a Join prompt, tap Join",
+                        manualWiFiInstruction,
+                        "Return after the Wi-Fi checkmark appears — the app continues automatically",
                     ]
                 ),
                 tight: tight
             )
+            if model.session.wifiJoinNeedsManualAction {
+                StartupWizardInfoBanner(
+                    text:
+                        "Automatic Wi-Fi join is unavailable in this development build. Connect in iPhone Settings, then return here."
+                        .opcLocalized,
+                    tight: tight
+                )
+            }
             HStack(spacing: 10) {
                 ProgressView()
                     .tint(StartupColors.accent)
@@ -278,6 +287,13 @@ struct ConnectionSetupView: View {
                     .foregroundStyle(StartupColors.ink)
             }
         }
+    }
+
+    private var manualWiFiInstruction: String {
+        let target = model.session.joiningSSID ?? "the camera network".opcLocalized
+        return String(
+            format: "If no prompt appears, open Settings → Wi-Fi and connect to %@".opcLocalized,
+            target)
     }
 
     private var datalinkStep: some View {

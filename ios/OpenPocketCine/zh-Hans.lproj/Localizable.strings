@@ -130,6 +130,12 @@
 "On 5.8 GHz that can take about a minute; we keep trying" = "使用 5.8 GHz 时可能需要约一分钟，我们会持续尝试";
 "Tap Join when iOS asks to join the camera network" = "iOS 询问时点击“加入”相机网络";
 "Stay on this screen until we open the datalink" = "请停留在此页面，直到数据链路打开";
+"If iOS shows a Join prompt, tap Join" = "如果 iOS 弹出加入提示，请点击“加入”";
+"If no prompt appears, open Settings → Wi-Fi and connect to %@" = "如果没有弹出提示，请打开“设置”→“无线局域网”，连接 %@";
+"Return after the Wi-Fi checkmark appears — the app continues automatically" = "看到 Wi-Fi 名称旁出现蓝色对勾后返回 App，连接会自动继续";
+"Automatic Wi-Fi join is unavailable in this development build. Connect in iPhone Settings, then return here." = "此开发版本无法自动加入 Wi-Fi。请在 iPhone“设置”中连接相机网络，然后返回这里。";
+"iOS couldn't join %@ automatically. Open Settings → Wi-Fi, connect to %@, then return to the app." = "iOS 无法自动加入 %@。请打开“设置”→“无线局域网”，连接 %@，然后返回 App。";
+"the camera network" = "相机网络";
 "Turn the camera on and wait until Bluetooth is up." = "打开相机并等待蓝牙启动。";
 "Tap the camera in the list when it appears." = "相机出现在列表中后点击它。";
 "If the Pocket asks you to Approve, tap it on the camera screen." = "如果 Pocket 要求确认，请在相机屏幕上点击确认。";

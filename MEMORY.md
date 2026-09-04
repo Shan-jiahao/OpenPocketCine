@@ -33,4 +33,8 @@ Never store secrets, camera credentials, captures, or personal data here.
   Pro: when the phone already has a `192.168.2.x` camera path, skipping
   `NEHotspotConfiguration.apply` allows the existing UDP/DUML connection to
   continue under a Personal Team build.
+- 2026-09-04: A Personal Team build reports `NEHotspotConfigurationErrorDomain`
+  code 8 when it attempts automatic SoftAP configuration. Treat that as a
+  manual-join flow: preserve the target network, show its SSID, poll for the
+  camera DHCP path, and resume without another pairing tap.
 - Remove obsolete entries through a reviewed change to this file.
