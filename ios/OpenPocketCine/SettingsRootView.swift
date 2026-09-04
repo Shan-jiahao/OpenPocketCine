@@ -234,14 +234,14 @@ struct SettingsRootView: View {
                     .fill(model.operatorSettingsTab == tab ? LiveDesign.accent : Color.clear)
                     .frame(width: 6, height: 26)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(tab.rawValue)
+                    Text(tab.rawValue.opcLocalized)
                         .font(LiveType.ui(size: 13, weight: .semibold))
                         .foregroundStyle(
                             model.operatorSettingsTab == tab ? LiveDesign.text : LiveDesign.muted
                         )
                         .lineLimit(1)
                         .minimumScaleFactor(0.78)
-                    Text(tabSubtitle(tab))
+                    Text(tabSubtitle(tab).opcLocalized)
                         .font(LiveType.ui(size: 10.5, weight: .regular))
                         .foregroundStyle(LiveDesign.faint)
                         .lineLimit(2)
@@ -265,16 +265,16 @@ struct SettingsRootView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(model.operatorSettingsTab.rawValue)
+                    Text(model.operatorSettingsTab.rawValue.opcLocalized)
                         .font(LiveType.ui(size: 24, weight: .semibold))
                         .foregroundStyle(LiveDesign.text)
-                    Text(subtitle)
+                    Text(subtitle.opcLocalized)
                         .font(LiveType.ui(size: 12.5, weight: .regular))
                         .foregroundStyle(LiveDesign.muted)
                         .lineLimit(2)
                 }
                 Spacer()
-                Text(pillText.uppercased())
+                Text(pillText.opcLocalized.uppercased())
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .kerning(0.6)
                     .foregroundStyle(LiveDesign.accent)
@@ -373,13 +373,14 @@ struct SettingsRootView: View {
                 help: SettingsHelpCopy.currentTransport,
                 showTopDivider: false
             ) {
-                SettingsValueText(value: model.isLive ? "BLE + Wi-Fi active" : "Not connected")
+                SettingsValueText(
+                    value: (model.isLive ? "BLE + Wi-Fi active" : "Not connected").opcLocalized)
             }
             SettingsInlineRow(
                 title: "Phase",
                 help: "Where the BLE → Wi-Fi → datalink handshake is right now."
             ) {
-                SettingsValueText(value: model.session.phase.label)
+                SettingsValueText(value: model.session.phase.opcLocalizedLabel)
             }
             if let ssid = model.session.joinedSSID, !ssid.isEmpty {
                 SettingsInlineRow(
@@ -419,7 +420,7 @@ struct SettingsRootView: View {
                         "Pair from the home list. Settings does not start a new pair — that stays on Your cameras.",
                     showTopDivider: false
                 ) {
-                    SettingsValueText(value: "None")
+                    SettingsValueText(value: "None".opcLocalized)
                 }
             } else {
                 ForEach(Array(model.savedCameras.enumerated()), id: \.element.id) { index, camera in
@@ -428,7 +429,7 @@ struct SettingsRootView: View {
                         help: camera.modelName + (camera.lastSSID.map { " · \($0)" } ?? ""),
                         showTopDivider: index > 0
                     ) {
-                        SettingsValueText(value: camera.lastSSID ?? "Saved")
+                        SettingsValueText(value: camera.lastSSID ?? "Saved".opcLocalized)
                     }
                 }
             }
@@ -613,7 +614,8 @@ struct SettingsRootView: View {
                 title: "Gamepad",
                 help: SettingsHelpCopy.gamepad
             ) {
-                SettingsValueText(value: model.gamepadConnected ? "Connected" : "Not connected")
+                SettingsValueText(
+                    value: (model.gamepadConnected ? "Connected" : "Not connected").opcLocalized)
             }
             SettingsSwitchInlineRow(
                 title: "Keep Screen Awake",
@@ -654,7 +656,7 @@ struct SettingsRootView: View {
                 expandedDisp = expandedDisp == section ? nil : section
             } label: {
                 HStack {
-                    Text(section.settingsCaption)
+                    Text(section.settingsCaption.opcLocalized)
                         .font(LiveType.ui(size: 11, weight: .semibold))
                         .foregroundStyle(LiveDesign.muted)
                         .multilineTextAlignment(.leading)
@@ -854,7 +856,7 @@ struct SettingsRootView: View {
 
     @ViewBuilder private var frameioStatusControl: some View {
         if !model.isFrameioConfigured {
-            SettingsValueText(value: "Not configured")
+            SettingsValueText(value: "Not configured".opcLocalized)
         } else if model.frameioConnecting {
             ProgressView().controlSize(.small).tint(LiveDesign.accent)
         } else if model.isFrameioConnected {

@@ -242,7 +242,7 @@ struct HelpBadge: View {
         }
         .buttonStyle(.zcTapTarget)
         .popover(isPresented: $showing) {
-            Text(text)
+            Text(text.opcLocalized)
                 .font(LiveType.ui(size: 12, weight: .regular))
                 .foregroundStyle(LiveDesign.text)
                 .padding(12)
@@ -294,7 +294,7 @@ struct SettingsInlineRow<Trailing: View>: View {
 
     private var labelRow: some View {
         HStack(spacing: 6) {
-            Text(title)
+            Text(title.opcLocalized)
                 .font(LiveType.ui(size: 12.5, weight: .semibold))
                 .foregroundStyle(LiveDesign.text)
                 .lineLimit(stacked ? 2 : 1)
@@ -397,7 +397,7 @@ private struct SettingsNumberPadInput: UIViewRepresentable {
             bar.items = [
                 UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                 UIBarButtonItem(
-                    title: SettingsNumberField.doneTitle,
+                    title: SettingsNumberField.doneTitle.opcLocalized,
                     style: .done,
                     target: self,
                     action: #selector(done)),
@@ -469,7 +469,7 @@ struct SettingsActionPill: View {
                             }
                         }
                 }
-                Text(title.uppercased())
+                Text(title.opcLocalized.uppercased())
                     .font(.system(size: 10.5, weight: .bold, design: .monospaced))
                     .kerning(0.6)
                     .lineLimit(1)
@@ -511,7 +511,7 @@ struct DisplayToggleItem: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 7) {
-                Text(title)
+                Text(title.opcLocalized)
                     .font(LiveType.ui(size: 11.5, weight: .semibold, design: .default))
                     .foregroundStyle(LiveDesign.text)
                     .lineLimit(1)
@@ -699,7 +699,7 @@ struct SettingsRowCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 0) {
             if let title {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(title)
+                    Text(title.opcLocalized)
                         .font(LiveType.ui(size: 13, weight: .semibold))
                         .foregroundStyle(LiveDesign.text)
                     Spacer(minLength: 0)
@@ -847,7 +847,7 @@ struct SettingsDashScale: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
-            Text(title)
+            Text(title.opcLocalized)
                 .font(LiveType.ui(size: 13, weight: .semibold))
                 .foregroundStyle(LiveDesign.text)
             Text(caption)
@@ -1135,7 +1135,7 @@ struct AppPanelChrome<Content: View>: View {
                         .font(LiveType.ui(size: 10, weight: .semibold, design: .rounded))
                         .tracking(1.3)
                         .foregroundStyle(StartupColors.muted)
-                    Text(title)
+                    Text(title.opcLocalized)
                         .font(LiveType.ui(size: 17, weight: .bold, design: .rounded))
                         .foregroundStyle(StartupColors.ink)
                 }

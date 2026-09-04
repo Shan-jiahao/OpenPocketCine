@@ -114,7 +114,7 @@ struct ConnectionSetupView: View {
                 .font(LiveType.ui(size: 11, weight: .semibold, design: .rounded))
                 .tracking(1.4)
                 .foregroundStyle(StartupColors.muted)
-            Text(stepTitle)
+            Text(stepTitle.opcLocalized)
                 .font(LiveType.ui(size: tight ? 22 : 25, weight: .bold, design: .rounded))
                 .foregroundStyle(StartupColors.ink)
                 .padding(.top, 6)
@@ -230,7 +230,7 @@ struct ConnectionSetupView: View {
             HStack(spacing: 10) {
                 ProgressView()
                     .tint(StartupColors.accent)
-                Text(phase.label)
+                Text(phase.opcLocalizedLabel)
                     .font(LiveType.ui(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(StartupColors.ink)
             }
@@ -273,7 +273,7 @@ struct ConnectionSetupView: View {
             HStack(spacing: 10) {
                 ProgressView()
                     .tint(StartupColors.accent)
-                Text(phase.label)
+                Text(phase.opcLocalizedLabel)
                     .font(LiveType.ui(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(StartupColors.ink)
             }
@@ -291,7 +291,7 @@ struct ConnectionSetupView: View {
             Text("Opening the video link…")
                 .font(LiveType.ui(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(StartupColors.ink)
-            Text(phase.label)
+            Text(phase.opcLocalizedLabel)
                 .font(LiveType.ui(size: 13, weight: .regular, design: .rounded))
                 .foregroundStyle(StartupColors.muted)
         }

@@ -1,0 +1,4 @@
+"NSBluetoothAlwaysUsageDescription" = "OpenPocketCine 使用蓝牙发现并配对 DJI Osmo Pocket，并获取相机 Wi-Fi 信息。";
+"NSMotionUsageDescription" = "OpenPocketCine 使用 AirPods 头部运动数据控制云台。";
+"NSLocalNetworkUsageDescription" = "OpenPocketCine 通过相机自身的 Wi-Fi 网络读取状态、控制云台并接收视频。";
+"NSPhotoLibraryAddUsageDescription" = "OpenPocketCine 将你选择的素材保存到照片。";

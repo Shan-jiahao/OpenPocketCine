@@ -13,6 +13,9 @@ Never store secrets, camera credentials, captures, or personal data here.
 - 2026-09-04: Head tracking must be usable without mounting the live video
   monitor, and every loss-of-control condition must send the existing gimbal
   rest/stop behavior immediately.
+- 2026-09-04: Keep English source strings as the fallback and ship Simplified
+  Chinese through `zh-Hans` localization resources so the interface follows the
+  device language without maintaining a separate Chinese UI implementation.
 
 ## Operations
 

@@ -91,7 +91,7 @@ struct HeadTrackControlView: View {
         Button {
             model.headphoneMotion.tapControl()
         } label: {
-            Text(model.headTrackControlTitle.uppercased())
+            Text(model.headTrackControlTitle.opcLocalized.uppercased())
                 .font(LiveType.ui(size: 15, weight: .bold))
                 .kerning(0.8)
                 .foregroundStyle(.white)
@@ -155,10 +155,10 @@ struct HeadTrackControlView: View {
                 .fill(ready ? LiveDesign.good : LiveDesign.faint)
                 .frame(width: 8, height: 8)
             VStack(alignment: .leading, spacing: 3) {
-                Text(title.uppercased())
+                Text(title.opcLocalized.uppercased())
                     .font(LiveType.ui(size: 9, weight: .bold))
                     .foregroundStyle(LiveDesign.muted)
-                Text(value)
+                Text(value.opcLocalized)
                     .font(LiveType.text(13))
                     .foregroundStyle(LiveDesign.text)
                     .lineLimit(1)
@@ -173,7 +173,7 @@ struct HeadTrackControlView: View {
 
     private func angleCard(_ title: String, _ value: Double?) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(title)
+            Text(title.opcLocalized)
                 .font(LiveType.ui(size: 9, weight: .bold))
                 .foregroundStyle(LiveDesign.muted)
             Text(value.map { String(format: "%+.1f°", $0) } ?? "—")
@@ -192,7 +192,7 @@ struct HeadTrackControlView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack {
-                Text(title)
+                Text(title.opcLocalized)
                     .font(LiveType.text(13))
                     .foregroundStyle(LiveDesign.text)
                 Spacer()

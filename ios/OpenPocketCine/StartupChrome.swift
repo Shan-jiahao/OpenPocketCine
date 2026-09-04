@@ -332,7 +332,7 @@ struct StartupWizardDeviceInstructionCard: View {
                 section.icon
                     .frame(width: tight ? 13 : 15, height: tight ? 13 : 15)
                     .foregroundStyle(StartupColors.accent)
-                Text(section.title)
+                Text(section.title.opcLocalized)
                     .font(LiveType.ui(size: tight ? 11 : 12, weight: .bold, design: .rounded))
                     .foregroundStyle(StartupColors.ink)
                 Spacer(minLength: 0)
@@ -346,7 +346,7 @@ struct StartupWizardDeviceInstructionCard: View {
                             .foregroundStyle(StartupColors.muted)
                             .frame(width: 14, alignment: .trailing)
                             .padding(.top, 1)
-                        Text(step)
+                        Text(step.opcLocalized)
                             .font(
                                 LiveType.ui(
                                     size: tight ? 11 : 13, weight: .medium, design: .rounded)
@@ -379,7 +379,7 @@ struct StartupWizardInfoBanner: View {
             OpcIcon.info
                 .frame(width: tight ? 12 : 14, height: tight ? 12 : 14)
                 .foregroundStyle(StartupColors.accent)
-            Text(text)
+            Text(text.opcLocalized)
                 .font(LiveType.ui(size: tight ? 10 : 12, weight: .regular, design: .rounded))
                 .foregroundStyle(StartupColors.muted)
                 .lineSpacing(2)
@@ -430,10 +430,10 @@ struct StartupEmptyDiscoveryCard: View {
             OpcIcon.radio
                 .frame(width: compact ? 18 : 24, height: compact ? 18 : 24)
                 .foregroundStyle(StartupColors.accent)
-            Text(title)
+            Text(title.opcLocalized)
                 .font(LiveType.ui(size: compact ? 13 : 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(StartupColors.ink)
-            Text(hint)
+            Text(hint.opcLocalized)
                 .font(LiveType.ui(size: compact ? 10 : 12, weight: .regular, design: .rounded))
                 .foregroundStyle(StartupColors.muted)
                 .multilineTextAlignment(.center)
