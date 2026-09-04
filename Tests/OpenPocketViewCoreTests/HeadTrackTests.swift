@@ -571,4 +571,55 @@ private struct PocketSim {
             lookRightDeg: 0, lookUpDeg: 0, gimbalYawTenth: 0, gimbalPitchTenth: 0)
         #expect(cmd?.rest == true, "matched noses rest — roll is not on 0x04/0x01")
     }
+
+    @Test func configurationClampsUnsafeValues() {
+        let config = HeadTrack.Configuration(
+            sensitivity: 9, deadZoneDeg: -4, smoothness: 3, maxSpeedDegPerSec: 500)
+        #expect(config.sensitivity == 2)
+        #expect(config.deadZoneDeg == 0)
+        #expect(config.smoothness == 1)
+        #expect(config.maxSpeedDegPerSec == HeadTrack.stickRateDegPerSec)
+    }
+
+    @Test func sensitivityAndDeadZoneShapeTheTargetWithoutChangingTheController() {
+        var track = HeadTrack(
+            configuration: .init(
+                sensitivity: 0.5, deadZoneDeg: 2, smoothness: 0,
+                maxSpeedDegPerSec: HeadTrack.stickRateDegPerSec))
+        _ = track.center(gimbalYawTenth: 0, gimbalPitchTenth: 0)
+        let inside = track.tick(
+            lookRightDeg: 2, lookUpDeg: 0, gimbalYawTenth: 0, gimbalPitchTenth: 0)
+        #expect(inside?.rest == true)
+        let outside = track.tick(
+            lookRightDeg: 12, lookUpDeg: 0, gimbalYawTenth: 0, gimbalPitchTenth: 0)
+        #expect(abs((outside?.x ?? 0) - 0.5) < 0.001)
+    }
+
+    @Test func smoothnessFiltersAStepTarget() {
+        var direct = HeadTrack(configuration: .init(smoothness: 0))
+        var smooth = HeadTrack(configuration: .init(smoothness: 1))
+        _ = direct.center(gimbalYawTenth: 0, gimbalPitchTenth: 0)
+        _ = smooth.center(gimbalYawTenth: 0, gimbalPitchTenth: 0)
+        let directCommand = direct.tick(
+            lookRightDeg: 10, lookUpDeg: 0, gimbalYawTenth: 0, gimbalPitchTenth: 0, dt: 0.04)
+        var smoothCommand: HeadTrack.Command?
+        for _ in 0..<5 {
+            smoothCommand = smooth.tick(
+                lookRightDeg: 10, lookUpDeg: 0, gimbalYawTenth: 0, gimbalPitchTenth: 0,
+                dt: 0.04)
+        }
+        #expect((smoothCommand?.x ?? 0) < (directCommand?.x ?? 0))
+        #expect((smoothCommand?.x ?? 0) > 0)
+    }
+
+    @Test func maxSpeedCapsStickThrow() {
+        let speed = 20.0
+        var track = HeadTrack(configuration: .init(maxSpeedDegPerSec: speed))
+        _ = track.center(gimbalYawTenth: 0, gimbalPitchTenth: 0)
+        let command = track.tick(
+            lookRightDeg: 40, lookUpDeg: -40, gimbalYawTenth: 0, gimbalPitchTenth: 0)
+        let cap = speed / HeadTrack.stickRateDegPerSec
+        #expect(abs(command?.x ?? 0) <= cap)
+        #expect(abs(command?.y ?? 0) <= cap)
+    }
 }

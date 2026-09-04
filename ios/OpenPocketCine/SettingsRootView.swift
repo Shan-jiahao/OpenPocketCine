@@ -594,6 +594,13 @@ struct SettingsRootView: View {
                 help: SettingsHelpCopy.headTracking,
                 isOn: model.headTrackingEnabled
             ) { model.headTrackingEnabled.toggle() }
+            if model.isLive {
+                SettingsInlineRow(title: "HeadTrack Control") {
+                    SettingsActionPill(title: "Open") {
+                        model.liveOperatorPanel = .headTrack
+                    }
+                }
+            }
             SettingsInlineRow(
                 title: "Joystick Sensitivity",
                 help: SettingsHelpCopy.joystickSensitivity,

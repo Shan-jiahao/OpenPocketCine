@@ -105,6 +105,11 @@ final class CameraSession {
 
     @ObservationIgnored private let ble = BleLink()
     @ObservationIgnored var datalink: DatalinkDriver?
+    var isControlLinkReady: Bool {
+        guard case .live = phase else { return false }
+        return datalink?.isClosed == false && datalink?.isFlowHealthy != false
+            && !sessionRecovery.isRecovering
+    }
     @ObservationIgnored private var frameRouter: Task<Void, Never>?
     @ObservationIgnored private var keepaliveLoop: Task<Void, Never>?
     /// Last pid `0x38` GET reply. BLE fallback fires when this goes stale.
@@ -716,7 +721,8 @@ final class CameraSession {
         do {
             _ = try await waitFrame(0x53, 0x10, timeout: .seconds(2))  // Pocket 3 may answer e0
         } catch Fail.timeout {
-            ControlLiveLog.line("creds: 0x53/0x10 no reply — continuing (Pocket 3 often answers e0/silent)")
+            ControlLiveLog.line(
+                "creds: 0x53/0x10 no reply — continuing (Pocket 3 often answers e0/silent)")
         } catch Fail.disconnected {
             throw Fail.disconnectedDuring("0x53/0x10")
         }
