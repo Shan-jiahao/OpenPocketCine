@@ -55,7 +55,7 @@ struct CrosshairLongPressMenu: View {
     var compact: Bool = false
 
     var body: some View {
-        Text(CrosshairAssist.helpCopy)
+        Text(CrosshairAssist.helpCopy.opcLocalized)
             .font(LiveType.ui(size: compact ? 11 : 13))
             .foregroundStyle(LiveDesign.muted)
     }

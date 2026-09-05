@@ -41,6 +41,10 @@ final class CameraSession {
     private(set) var connectedCamera: FoundCamera?
     /// Camera-AP SSID after a successful join. Re-read over BLE on the next connect.
     private(set) var joinedSSID: String?
+    /// Target shown while iOS associates with the camera SoftAP.
+    private(set) var joiningSSID: String?
+    /// Personal Team builds cannot provision Hotspot Configuration, so the operator joins manually.
+    private(set) var wifiJoinNeedsManualAction = false
 
     // Pipeline diagnostics — keepalive writes these at 1 Hz. Not observed by live chrome.
     @ObservationIgnored var videoPackets = 0
@@ -105,6 +109,11 @@ final class CameraSession {
 
     @ObservationIgnored private let ble = BleLink()
     @ObservationIgnored var datalink: DatalinkDriver?
+    var isControlLinkReady: Bool {
+        guard case .live = phase else { return false }
+        return datalink?.isClosed == false && datalink?.isFlowHealthy != false
+            && !sessionRecovery.isRecovering
+    }
     @ObservationIgnored private var frameRouter: Task<Void, Never>?
     @ObservationIgnored private var keepaliveLoop: Task<Void, Never>?
     /// Last pid `0x38` GET reply. BLE fallback fires when this goes stale.
@@ -490,6 +499,8 @@ final class CameraSession {
         scanTask?.cancel()
         abortInFlightRun()
         connectedCamera = nil
+        joiningSSID = nil
+        wifiJoinNeedsManualAction = false
         phase = .idle
         statusFlushTask?.cancel()
         statusFlushTask = nil
@@ -716,7 +727,8 @@ final class CameraSession {
         do {
             _ = try await waitFrame(0x53, 0x10, timeout: .seconds(2))  // Pocket 3 may answer e0
         } catch Fail.timeout {
-            ControlLiveLog.line("creds: 0x53/0x10 no reply — continuing (Pocket 3 often answers e0/silent)")
+            ControlLiveLog.line(
+                "creds: 0x53/0x10 no reply — continuing (Pocket 3 often answers e0/silent)")
         } catch Fail.disconnected {
             throw Fail.disconnectedDuring("0x53/0x10")
         }
@@ -733,6 +745,8 @@ final class CameraSession {
             isSavedCamera: SavedCameraStore.load().contains { $0.id == camera.id }
                 || cachedWifiCameraId == camera.id)
 
+        joiningSSID = ssid
+        wifiJoinNeedsManualAction = false
         phase = .joiningWifi
         // Both SoftAPs are 192.168.2.1. Do not wait for that subnet to vanish —
         // iOS stays associated until we apply the Nano (or Pocket) hotspot.
@@ -742,20 +756,31 @@ final class CameraSession {
         do {
             try await WiFiJoiner.joinCameraAP(
                 ssid: ssid, passphrase: pass, wpa3: camera.model.wpa3,
-                knownOtherSSIDs: otherSSIDs, persist: persistHotspot)
+                knownOtherSSIDs: otherSSIDs, persist: persistHotspot,
+                onManualJoinRequired: { [weak self] _ in
+                    self?.wifiJoinNeedsManualAction = true
+                })
         } catch is CancellationError {
+            joiningSSID = nil
+            wifiJoinNeedsManualAction = false
             throw CancellationError()
         } catch {
+            joiningSSID = nil
+            wifiJoinNeedsManualAction = false
             // A Pocket "Reset Wi-Fi" regenerates the passphrase. Cached creds
             // used to be kept through every failed join (Keychain survives
             // reinstall, and the wizard has no Forget), so the tester in #235
             // could never join again. Drop them; the next tap re-reads over BLE.
-            if credsFromCache {
+            let shouldInvalidateCredentials =
+                (error as? WiFiJoiner.JoinError)?.shouldInvalidateCachedCredentials ?? true
+            if credsFromCache, shouldInvalidateCredentials {
                 ControlLiveLog.line("creds: join failed with cached creds — dropping cache")
                 forgetWifiCreds(cameraId: camera.id, advertisedName: camera.name, ssid: ssid)
             }
             throw error
         }
+        joiningSSID = nil
+        wifiJoinNeedsManualAction = false
         // Known good only once the join worked.
         persistWifiCreds(camera: camera, ssid: ssid, password: pass)
         joinedSSID = ssid

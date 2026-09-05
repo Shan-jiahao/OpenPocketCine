@@ -126,7 +126,7 @@ struct AssistLongPressPanel<Content: View, Footer: View>: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Label {
-                    Text(tool.title)
+                    Text(tool.title.opcLocalized)
                 } icon: {
                     AssistToolIcon(tool: tool, size: 15)
                 }

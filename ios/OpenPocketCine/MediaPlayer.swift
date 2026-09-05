@@ -615,7 +615,7 @@ struct MediaPlayerView: View {
                 .foregroundStyle(LiveDesign.text)
                 .lineLimit(1)
             if isProxyPlayback {
-                Text(MediaLibraryCopy.proxyTag)
+                Text(MediaLibraryCopy.proxyTag.opcLocalized)
                     .font(.system(size: 10, weight: .bold, design: .rounded))
                     .foregroundStyle(LiveDesign.text)
                     .padding(.horizontal, 7)

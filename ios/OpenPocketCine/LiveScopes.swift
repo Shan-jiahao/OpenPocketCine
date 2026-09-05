@@ -408,10 +408,9 @@ struct WaveformOverlay: View {
                 canvas: canvas, feed: feed, chromeClearance: chromeClearance,
                 onOpenOptions: { frame in
                     WaveformAssist.presentOptions(anchor: frame, assist: model.assist)
-                }
-            ) {
-                plot
-            }
+                },
+                content: { plot }
+            )
         } else {
             plot
         }
@@ -1107,7 +1106,7 @@ private struct ScopeMiniChrome<Content: View>: View {
             ScopePalette.panelFill
             content()
             HStack(spacing: 4) {
-                Text(title.uppercased())
+                Text(title.opcLocalized.uppercased())
                     .font(.system(size: 10.5, weight: .bold, design: .monospaced))
                     .foregroundStyle(LiveDesign.text.opacity(0.66))
                     .lineLimit(1)

@@ -3,6 +3,26 @@ import OpenPocketViewCore
 import UIKit
 import os
 
+struct HeadphoneMotionStartupPolicy {
+    static let firstSampleTimeout: TimeInterval = 1
+    static let maxAutomaticRestarts = 3
+
+    static func shouldRestart(
+        startedAt: TimeInterval?, now: TimeInterval, hasSample: Bool, restartCount: Int
+    ) -> Bool {
+        guard !hasSample, let startedAt, restartCount < maxAutomaticRestarts else {
+            return false
+        }
+        return now - startedAt >= firstSampleTimeout
+    }
+
+    static func shouldUsePullFallback(
+        hasSample: Bool, restartCount: Int, alreadyUsingFallback: Bool
+    ) -> Bool {
+        !hasSample && !alreadyUsingFallback && restartCount >= maxAutomaticRestarts
+    }
+}
+
 /// Shared local space: Calibrate Head Lock is identity. Look is Euler
 /// Δatt yaw/pitch from that lock. Stick throw closes live `0x04/0x05`
 /// onto that look. Roll is displayed only. Motion starts when Head
@@ -16,6 +36,7 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
     static let debugHud = false
 
     private struct HeadSample: Sendable {
+        var receivedAt: TimeInterval
         var w: Double
         var x: Double
         var y: Double
@@ -64,6 +85,10 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
     private var calibratedByUser = false
     private var pendingCalibrate = false
     private var lastMotionAt: Date?
+    private var motionStartedAt: TimeInterval?
+    private var motionRestartCount = 0
+    private var usesPullFallback = false
+    private var didReportMissingFirstSample = false
     private var lastHudAt: Date?
     private var lastLogAt: Date?
     private var centerHaptic = UIImpactFeedbackGenerator(style: .medium)
@@ -72,6 +97,7 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
     private var gimbalYaw0Deg = 0.0
     private var gimbalPitch0Deg = 0.0
     private var didToastLive = false
+    private static let motionTimeout: TimeInterval = 0.25
 
     func attach(model: AppModel) {
         detach()
@@ -81,6 +107,7 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
     }
 
     func detach() {
+        stopForSafety(reason: "bridge detached")
         stopMotion()
         haveHead = false
         didToastNeedPods = false
@@ -95,6 +122,7 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         model?.headTrackControlTitle = LiveHeadTrackCalibrateButton.calibrateTitle
         model?.headTrackImuReadout = ""
         model?.headTrackAxisPose = nil
+        clearPublishedPose()
         motion.delegate = nil
         model = nil
     }
@@ -103,9 +131,23 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         stopDrive()
     }
 
+    func noteLinkUnavailable() {
+        stopForSafety(reason: "control link unavailable")
+    }
+
+    func noteSceneBecameInactive() {
+        stopForSafety(reason: "app inactive")
+        // Permission sheets and the app switcher both make the scene inactive.
+        // Restart from a clean Core Motion session when the app becomes active;
+        // an active manager can otherwise remain wedged without a first sample.
+        stopMotion()
+        haveHead = false
+    }
+
     func sync() {
         guard let model else { return }
         guard model.headTrackingEnabled else {
+            stopForSafety(reason: "head tracking disabled")
             stopMotion()
             haveHead = false
             didToastNeedPods = false
@@ -114,12 +156,11 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
             calibratedByUser = false
             pendingCalibrate = false
             lastMotionAt = nil
-            driving = false
-            track.reset()
             didToastLive = false
             model.headTrackControlTitle = LiveHeadTrackCalibrateButton.calibrateTitle
             model.headTrackImuReadout = ""
             model.headTrackAxisPose = nil
+            clearPublishedPose()
             return
         }
         publishTitle()
@@ -131,15 +172,9 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
     func tapControl() {
         guard let model, model.headTrackingEnabled else { return }
         if !userStopped, calibratedByUser {
-            userStopped = true
-            calibratedByUser = false
-            pendingCalibrate = false
-            track.reset()
-            stopDrive()
+            stopForSafety(reason: "operator stop", markUserStopped: true)
             resetRelative()
             model.session.controlNote = "Head lock cleared"
-            ControlLiveLog.line("head-track: stopped")
-            publishTitle()
             publishReadout(now: Date())
             return
         }
@@ -186,6 +221,8 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         intGz = 0
         pendingCalibrate = false
         calibratedByUser = true
+        track.configuration = model.headTrackConfiguration
+        model.headTrackCalibrated = true
         didToastLive = true
         model.session.prepHeadTrackGimbal()
         model.session.controlNote = "Head lock set — gimbal follows"
@@ -219,7 +256,14 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         Task { @MainActor in
             ControlLiveLog.line("head-track: AirPods connected")
             self.didToastNeedPods = false
-            if self.model?.headTrackingEnabled == true { self.startMotion() }
+            self.model?.headTrackAirPodsConnected = true
+            if self.model?.headTrackingEnabled == true {
+                self.resetMotionStartupState()
+                if self.motion.isDeviceMotionActive {
+                    self.motion.stopDeviceMotionUpdates()
+                }
+                self.startMotion()
+            }
             self.sync()
         }
     }
@@ -228,14 +272,9 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         Task { @MainActor in
             ControlLiveLog.line("head-track: AirPods disconnected")
             self.haveHead = false
-            self.calibratedByUser = false
-            self.pendingCalibrate = false
-            self.lastMotionAt = nil
-            self.track.reset()
-            self.stopDrive()
-            self.model?.headTrackImuReadout = ""
-            self.model?.headTrackAxisPose = nil
-            self.publishTitle()
+            self.latestHead.withLock { $0 = nil }
+            self.model?.headTrackAirPodsConnected = false
+            self.stopForSafety(reason: "AirPods disconnected")
             if self.model?.headTrackingEnabled == true {
                 self.model?.session.controlNote = "Head tracking needs AirPods in your ears"
             }
@@ -250,7 +289,11 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         if auth == .denied || auth == .restricted {
             if !didToastNeedPods {
                 didToastNeedPods = true
-                model?.session.controlNote = "Allow Motion & Fitness for OpenPocketCine in Settings"
+                let name =
+                    Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+                    ?? "OpenPocketCine"
+                model?.session.controlNote = String(
+                    format: "Allow Motion & Fitness for %@ in Settings".opcLocalized, name)
             }
             return
         }
@@ -264,14 +307,27 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
             }
             return
         }
+        model?.headTrackAirPodsConnected = true
         startSamplePump()
         guard !motion.isDeviceMotionActive else { return }
+        beginMotionUpdates()
+    }
+
+    private func beginMotionUpdates() {
         latestHead.withLock { $0 = nil }
+        motionStartedAt = ProcessInfo.processInfo.systemUptime
+        ControlLiveLog.line(
+            "head-track: motion start attempt=\(motionRestartCount + 1)"
+        )
         motion.startDeviceMotionUpdates(to: motionQueue) { [weak self] sample, error in
             if let error {
                 Task { @MainActor in
                     ControlLiveLog.line("head-track: motion error \(error.localizedDescription)")
                     guard let self else { return }
+                    self.haveHead = false
+                    self.latestHead.withLock { $0 = nil }
+                    self.model?.headTrackAirPodsConnected = false
+                    self.stopForSafety(reason: "motion error")
                     if !self.didToastNeedPods {
                         self.didToastNeedPods = true
                         self.model?.session.controlNote = "Head tracking needs AirPods in your ears"
@@ -280,14 +336,36 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
                 return
             }
             guard let sample, let self else { return }
-            let q = sample.attitude.quaternion
-            let r = sample.rotationRate
-            let a = sample.attitude
-            let next = HeadSample(
-                w: q.w, x: q.x, y: q.y, z: q.z,
-                gx: r.x, gy: r.y, gz: r.z,
-                yaw: a.yaw, pitch: a.pitch, roll: a.roll)
-            self.latestHead.withLock { $0 = next }
+            self.receive(sample)
+        }
+    }
+
+    nonisolated private func receive(_ sample: CMDeviceMotion) {
+        let q = sample.attitude.quaternion
+        let r = sample.rotationRate
+        let a = sample.attitude
+        let next = HeadSample(
+            receivedAt: ProcessInfo.processInfo.systemUptime,
+            w: q.w, x: q.x, y: q.y, z: q.z,
+            gx: r.x, gy: r.y, gz: r.z,
+            yaw: a.yaw, pitch: a.pitch, roll: a.roll)
+        let isFirstSample = latestHead.withLock { current in
+            let isFirst = current == nil
+            current = next
+            return isFirst
+        }
+        if isFirstSample {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.motionStartedAt = nil
+                self.motionRestartCount = 0
+                self.didReportMissingFirstSample = false
+                ControlLiveLog.line(
+                    self.usesPullFallback
+                        ? "head-track: first motion sample via pull fallback"
+                        : "head-track: first motion sample"
+                )
+            }
         }
     }
 
@@ -299,6 +377,9 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
             while !Task.isCancelled {
                 try? await Task.sleep(for: delay)
                 guard let self, !Task.isCancelled else { return }
+                self.capturePullFallbackSample()
+                self.recoverMissingFirstSample()
+                self.checkSafety()
                 self.pullHead()
             }
         }
@@ -309,8 +390,62 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         samplePump = nil
     }
 
+    private func recoverMissingFirstSample() {
+        guard let model, model.headTrackingEnabled, motion.isDeviceMotionAvailable else { return }
+        let now = ProcessInfo.processInfo.systemUptime
+        let hasSample = latestHead.withLock { $0 != nil }
+        if HeadphoneMotionStartupPolicy.shouldRestart(
+            startedAt: motionStartedAt,
+            now: now,
+            hasSample: hasSample,
+            restartCount: motionRestartCount
+        ) {
+            motionRestartCount += 1
+            ControlLiveLog.line(
+                "head-track: no first sample — restart \(motionRestartCount)/\(HeadphoneMotionStartupPolicy.maxAutomaticRestarts)"
+            )
+            if motion.isDeviceMotionActive { motion.stopDeviceMotionUpdates() }
+            beginMotionUpdates()
+            return
+        }
+        if HeadphoneMotionStartupPolicy.shouldUsePullFallback(
+            hasSample: hasSample,
+            restartCount: motionRestartCount,
+            alreadyUsingFallback: usesPullFallback
+        ) {
+            usesPullFallback = true
+            if motion.isDeviceMotionActive { motion.stopDeviceMotionUpdates() }
+            latestHead.withLock { $0 = nil }
+            motionStartedAt = now
+            ControlLiveLog.line("head-track: switching to pull fallback")
+            motion.startDeviceMotionUpdates()
+            return
+        }
+        guard
+            !hasSample,
+            usesPullFallback,
+            motionRestartCount >= HeadphoneMotionStartupPolicy.maxAutomaticRestarts,
+            let motionStartedAt,
+            now - motionStartedAt >= HeadphoneMotionStartupPolicy.firstSampleTimeout,
+            !didReportMissingFirstSample
+        else { return }
+        didReportMissingFirstSample = true
+        model.session.controlNote =
+            "AirPods 已连接，但未收到头部动作数据。请确认至少一只耳机已戴入耳中，然后关闭再打开头追。"
+        ControlLiveLog.line("head-track: no first sample after automatic retries")
+    }
+
+    private func capturePullFallbackSample() {
+        guard usesPullFallback, let sample = motion.deviceMotion else { return }
+        receive(sample)
+    }
+
     private func pullHead() {
         guard let sample = latestHead.withLock({ $0 }) else { return }
+        guard ProcessInfo.processInfo.systemUptime - sample.receivedAt <= Self.motionTimeout else {
+            stopForSafety(reason: "motion timeout")
+            return
+        }
         lastGx = sample.gx
         lastGy = sample.gy
         lastGz = sample.gz
@@ -322,6 +457,8 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
             resetRelative()
         }
         haveHead = true
+        model?.headTrackAirPodsConnected = true
+        model?.headTrackMotionFresh = true
         didToastNeedPods = false
         let now = Date()
         var dt = 0.0
@@ -348,9 +485,9 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         guard let model else { return false }
         if model.session.isLocked { return false }
         if model.session.isBrowsingMedia { return false }
-        if model.liveOperatorPanel != nil { return false }
+        if let panel = model.liveOperatorPanel, panel != .headTrack { return false }
         if model.isEditingChrome { return false }
-        return model.isLive && model.session.datalink != nil
+        return model.session.isControlLinkReady
     }
 
     private func apply(dt: TimeInterval) {
@@ -359,7 +496,7 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
             return
         }
         guard canDrive else {
-            stopDrive()
+            stopForSafety(reason: "control link unavailable")
             return
         }
         if !calibratedByUser || !track.isCentered {
@@ -379,6 +516,7 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         let look = HeadTrack.look(current: lastQuat, origin: originQuat)
         let lookRight = look.right
         let lookUp = look.up
+        track.configuration = model.headTrackConfiguration
         guard
             let cmd = track.tick(
                 lookRightDeg: lookRight, lookUpDeg: lookUp,
@@ -423,11 +561,54 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         }
     }
 
+    private func checkSafety() {
+        guard let model, model.headTrackingEnabled else { return }
+        guard canDrive else {
+            if calibratedByUser || driving {
+                stopForSafety(reason: "control link unavailable")
+            }
+            return
+        }
+        guard let sample = latestHead.withLock({ $0 }) else {
+            if calibratedByUser || driving { stopForSafety(reason: "motion timeout") }
+            return
+        }
+        if ProcessInfo.processInfo.systemUptime - sample.receivedAt > Self.motionTimeout {
+            stopForSafety(reason: "motion timeout")
+        }
+    }
+
+    private func stopForSafety(reason: String, markUserStopped: Bool = false) {
+        let wasActive = calibratedByUser || driving || pendingCalibrate
+        userStopped = markUserStopped
+        calibratedByUser = false
+        pendingCalibrate = false
+        lastMotionAt = nil
+        track.reset()
+        driving = false
+        if model?.gimbalAnalogHeld != true { model?.session.endGimbalStick() }
+        model?.headTrackCalibrated = false
+        model?.headTrackMotionFresh = false
+        model?.headTrackTargetYawDeg = nil
+        model?.headTrackTargetPitchDeg = nil
+        publishTitle()
+        if wasActive { ControlLiveLog.line("head-track: stopped — \(reason)") }
+    }
+
     private func stopMotion() {
         stopSamplePump()
         if motion.isDeviceMotionActive { motion.stopDeviceMotionUpdates() }
         if motion.isConnectionStatusActive { motion.stopConnectionStatusUpdates() }
         latestHead.withLock { $0 = nil }
+        resetMotionStartupState()
+        model?.headTrackMotionFresh = false
+    }
+
+    private func resetMotionStartupState() {
+        motionStartedAt = nil
+        motionRestartCount = 0
+        usesPullFallback = false
+        didReportMissingFirstSample = false
     }
 
     private func publishReadout(now: Date?) {
@@ -439,6 +620,7 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         let look = HeadTrack.look(current: lastQuat, origin: originQuat)
         let lookRight = look.right
         let lookUp = look.up
+        let adjusted = model.headTrackConfiguration.adjustedLook(right: lookRight, up: lookUp)
         let originGimbalYaw = calibratedByUser ? gimbalYaw0Deg : 0
         let originGimbalPitch = calibratedByUser ? gimbalPitch0Deg : 0
         let gimbalYawDeg = model.session.gimbalYawTenthDeg.map {
@@ -448,6 +630,21 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
         let gimbalPitchDeg = model.session.gimbalPitchTenthDeg.map {
             HeadTrack.bodyLookUpDeg(
                 livePitchDeg: Double($0) / 10, originPitchDeg: originGimbalPitch)
+        }
+        model.headTrackCalibrated = calibratedByUser
+        model.headTrackHeadYawDeg = lookRight
+        model.headTrackHeadPitchDeg = lookUp
+        model.headTrackGimbalYawDeg = model.session.gimbalYawTenthDeg.map { Double($0) / 10 }
+        model.headTrackGimbalPitchDeg = model.session.gimbalPitchTenthDeg.map { Double($0) / 10 }
+        if calibratedByUser {
+            let target = HeadTrack.Reach.project(
+                lookRight: adjusted.right, lookUp: adjusted.up,
+                yaw0: gimbalYaw0Deg, pitch0: gimbalPitch0Deg)
+            model.headTrackTargetYawDeg = target.yaw
+            model.headTrackTargetPitchDeg = target.pitch
+        } else {
+            model.headTrackTargetYawDeg = nil
+            model.headTrackTargetPitchDeg = nil
         }
         model.headTrackAxisPose =
             Self.debugHud
@@ -506,6 +703,18 @@ final class HeadphoneMotionBridge: NSObject, CMHeadphoneMotionManagerDelegate {
                     rawY, rawP, dump.isEmpty ? "-" : dump, att.isEmpty ? "-" : att)
             )
         }
+    }
+
+    private func clearPublishedPose() {
+        model?.headTrackAirPodsConnected = false
+        model?.headTrackMotionFresh = false
+        model?.headTrackCalibrated = false
+        model?.headTrackHeadYawDeg = nil
+        model?.headTrackHeadPitchDeg = nil
+        model?.headTrackGimbalYawDeg = nil
+        model?.headTrackGimbalPitchDeg = nil
+        model?.headTrackTargetYawDeg = nil
+        model?.headTrackTargetPitchDeg = nil
     }
 
     private static func authLabel(_ status: CMAuthorizationStatus) -> String {

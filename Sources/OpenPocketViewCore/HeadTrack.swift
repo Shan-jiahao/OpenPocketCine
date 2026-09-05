@@ -58,6 +58,71 @@ public struct HeadTrack: Equatable, Sendable {
     /// Treat that as rest — 22:24 streamed `y=-0.01` and paused HEVC.
     public static let restThrow = 0.02
 
+    public struct Configuration: Equatable, Sendable {
+        public static let `default` = Configuration()
+
+        public var sensitivity: Double
+        public var deadZoneDeg: Double
+        public var smoothness: Double
+        public var maxSpeedDegPerSec: Double
+
+        public init(
+            sensitivity: Double = 1,
+            deadZoneDeg: Double = 0,
+            smoothness: Double = 0,
+            maxSpeedDegPerSec: Double = HeadTrack.stickRateDegPerSec
+        ) {
+            self.sensitivity = min(max(sensitivity, 0.5), 2)
+            self.deadZoneDeg = min(max(deadZoneDeg, 0), 10)
+            self.smoothness = min(max(smoothness, 0), 1)
+            self.maxSpeedDegPerSec = min(
+                max(maxSpeedDegPerSec, 10), HeadTrack.stickRateDegPerSec)
+        }
+
+        public func adjustedLook(right: Double, up: Double) -> (right: Double, up: Double) {
+            (
+                Self.axisAfterDeadZone(right, deadZoneDeg: deadZoneDeg) * sensitivity,
+                Self.axisAfterDeadZone(up, deadZoneDeg: deadZoneDeg) * sensitivity
+            )
+        }
+
+        private static func axisAfterDeadZone(_ value: Double, deadZoneDeg: Double) -> Double {
+            guard abs(value) > deadZoneDeg else { return 0 }
+            return value.sign == .minus ? value + deadZoneDeg : value - deadZoneDeg
+        }
+    }
+
+    /// Operator-facing response profiles. They only select existing controller
+    /// inputs; the tracking and gimbal-control algorithm remains unchanged.
+    public enum ResponsePreset: String, CaseIterable, Sendable {
+        case fast
+        case standard
+        case gentle
+
+        public var configuration: Configuration {
+            switch self {
+            case .fast:
+                Configuration(
+                    sensitivity: 1.3,
+                    deadZoneDeg: 0.5,
+                    smoothness: 0.15,
+                    maxSpeedDegPerSec: HeadTrack.stickRateDegPerSec)
+            case .standard:
+                Configuration(
+                    sensitivity: 1,
+                    deadZoneDeg: 1.5,
+                    smoothness: 0.35,
+                    maxSpeedDegPerSec: HeadTrack.stickRateDegPerSec)
+            case .gentle:
+                Configuration(
+                    sensitivity: 0.8,
+                    deadZoneDeg: 2.5,
+                    smoothness: 0.65,
+                    maxSpeedDegPerSec: 35)
+            }
+        }
+    }
+
     public static func gyroMagnitude(lookRight: Double, lookUp: Double, yaw: Double = 0)
         -> Double
     {
@@ -320,10 +385,14 @@ public struct HeadTrack: Equatable, Sendable {
 
     public private(set) var isCentered = false
 
+    public var configuration: Configuration
+
     private var gimbalYaw0Deg = 0.0
     private var gimbalPitch0Deg = 0.0
     private var lookRightDeg = 0.0
     private var lookUpDeg = 0.0
+    private var filteredLookRightDeg = 0.0
+    private var filteredLookUpDeg = 0.0
     private var engaged = false
     private var holding = false
     private var restingFor: TimeInterval = 0
@@ -335,7 +404,9 @@ public struct HeadTrack: Equatable, Sendable {
     public var modelYawDeg: Double { pan.model }
     public var modelTiltDeg: Double { tilt.model }
 
-    public init() {}
+    public init(configuration: Configuration = .default) {
+        self.configuration = configuration
+    }
 
     public mutating func reset() {
         isCentered = false
@@ -344,6 +415,8 @@ public struct HeadTrack: Equatable, Sendable {
         restingFor = 0
         lookRightDeg = 0
         lookUpDeg = 0
+        filteredLookRightDeg = 0
+        filteredLookUpDeg = 0
         pan = AxisState()
         tilt = AxisState()
     }
@@ -362,6 +435,8 @@ public struct HeadTrack: Equatable, Sendable {
         gimbalPitch0Deg = gimbalPitchTenth.map(Self.tenthToDeg) ?? 0
         lookRightDeg = 0
         lookUpDeg = 0
+        filteredLookRightDeg = 0
+        filteredLookUpDeg = 0
         engaged = false
         holding = false
         restingFor = 0
@@ -381,8 +456,18 @@ public struct HeadTrack: Equatable, Sendable {
         _ = (gyroLookRight, gyroLookUp, gyroYaw)
         lookRightDeg = Self.unwrap(wrappedRight, previous: lookRightDeg)
         lookUpDeg = Self.unwrap(wrappedUp, previous: lookUpDeg)
+        let adjusted = configuration.adjustedLook(right: lookRightDeg, up: lookUpDeg)
+        if configuration.smoothness == 0 || dt <= 0 {
+            filteredLookRightDeg = adjusted.right
+            filteredLookUpDeg = adjusted.up
+        } else {
+            let timeConstant = 0.05 + configuration.smoothness * 0.55
+            let alpha = 1 - exp(-dt / timeConstant)
+            filteredLookRightDeg += alpha * (adjusted.right - filteredLookRightDeg)
+            filteredLookUpDeg += alpha * (adjusted.up - filteredLookUpDeg)
+        }
         let target = Reach.project(
-            lookRight: lookRightDeg, lookUp: lookUpDeg,
+            lookRight: filteredLookRightDeg, lookUp: filteredLookUpDeg,
             yaw0: gimbalYaw0Deg, pitch0: gimbalPitch0Deg)
         pan.integrate(dt: dt)
         tilt.integrate(dt: dt)
@@ -410,8 +495,9 @@ public struct HeadTrack: Equatable, Sendable {
         }
         var x = throwFor(errPan) + pan.ffRate / Self.stickRateDegPerSec
         var y = throwFor(errTilt) + tilt.ffRate / Self.stickRateDegPerSec
-        x = min(Swift.max(x, -Self.maxThrow), Self.maxThrow)
-        y = min(Swift.max(y, -Self.maxThrow), Self.maxThrow)
+        let maxThrow = min(configuration.maxSpeedDegPerSec / Self.stickRateDegPerSec, Self.maxThrow)
+        x = min(Swift.max(x, -maxThrow), maxThrow)
+        y = min(Swift.max(y, -maxThrow), maxThrow)
         if abs(x) < Self.restThrow { x = 0 }
         if abs(y) < Self.restThrow { y = 0 }
         if x == 0, y == 0 {

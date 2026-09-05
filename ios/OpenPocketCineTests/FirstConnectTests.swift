@@ -6,6 +6,14 @@ import XCTest
 
 @MainActor
 final class FirstConnectTests: XCTestCase {
+    func testManualWiFiFallbackKeepsCachedCredentials() {
+        let error = WiFiJoiner.JoinError.automaticJoinUnavailable("OsmoPocket4P-TEST")
+
+        XCTAssertFalse(error.shouldInvalidateCachedCredentials)
+        XCTAssertTrue(WiFiJoiner.JoinError.pathNotReady.shouldInvalidateCachedCredentials)
+        XCTAssertTrue(error.localizedDescription.contains("OsmoPocket4P-TEST"))
+    }
+
     func testFirstPictureEscalatesWhenNoVideo() {
         XCTAssertEqual(
             CameraSoftAP.firstPictureStep(

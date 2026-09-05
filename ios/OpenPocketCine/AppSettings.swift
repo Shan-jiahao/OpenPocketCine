@@ -242,7 +242,7 @@ struct HelpBadge: View {
         }
         .buttonStyle(.zcTapTarget)
         .popover(isPresented: $showing) {
-            Text(text)
+            Text(text.opcLocalized)
                 .font(LiveType.ui(size: 12, weight: .regular))
                 .foregroundStyle(LiveDesign.text)
                 .padding(12)
@@ -294,7 +294,7 @@ struct SettingsInlineRow<Trailing: View>: View {
 
     private var labelRow: some View {
         HStack(spacing: 6) {
-            Text(title)
+            Text(title.opcLocalized)
                 .font(LiveType.ui(size: 12.5, weight: .semibold))
                 .foregroundStyle(LiveDesign.text)
                 .lineLimit(stacked ? 2 : 1)
@@ -397,7 +397,7 @@ private struct SettingsNumberPadInput: UIViewRepresentable {
             bar.items = [
                 UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
                 UIBarButtonItem(
-                    title: SettingsNumberField.doneTitle,
+                    title: SettingsNumberField.doneTitle.opcLocalized,
                     style: .done,
                     target: self,
                     action: #selector(done)),
@@ -469,7 +469,7 @@ struct SettingsActionPill: View {
                             }
                         }
                 }
-                Text(title.uppercased())
+                Text(title.opcLocalized.uppercased())
                     .font(.system(size: 10.5, weight: .bold, design: .monospaced))
                     .kerning(0.6)
                     .lineLimit(1)
@@ -511,7 +511,7 @@ struct DisplayToggleItem: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 7) {
-                Text(title)
+                Text(title.opcLocalized)
                     .font(LiveType.ui(size: 11.5, weight: .semibold, design: .default))
                     .foregroundStyle(LiveDesign.text)
                     .lineLimit(1)
@@ -574,7 +574,7 @@ struct SettingsSegmented: View {
                     OperatorSettingsHaptics.selection(enabled: OperatorPrefs.hapticsEnabled)
                     onSelect(option)
                 } label: {
-                    Text(option)
+                    Text(option.opcLocalized)
                         .font(
                             LiveType.ui(
                                 size: stacked ? 12 : 11, weight: active ? .semibold : .medium)
@@ -699,7 +699,7 @@ struct SettingsRowCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 0) {
             if let title {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(title)
+                    Text(title.opcLocalized)
                         .font(LiveType.ui(size: 13, weight: .semibold))
                         .foregroundStyle(LiveDesign.text)
                     Spacer(minLength: 0)
@@ -847,10 +847,10 @@ struct SettingsDashScale: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
-            Text(title)
+            Text(title.opcLocalized)
                 .font(LiveType.ui(size: 13, weight: .semibold))
                 .foregroundStyle(LiveDesign.text)
-            Text(caption)
+            Text(caption.opcLocalized)
                 .font(.system(size: 11.5, weight: .medium, design: .monospaced))
                 .foregroundStyle(LiveDesign.muted)
             HStack(spacing: 0) {
@@ -882,7 +882,7 @@ struct SettingsDashScale: View {
     }
 
     private var marker: some View {
-        Text(bandName)
+        Text(bandName.opcLocalized)
             .font(.system(size: 9.5, weight: .bold, design: .monospaced))
             .kerning(0.5)
             .foregroundStyle(bandColor)
@@ -901,7 +901,7 @@ struct SettingsDashScale: View {
 
     private func legend(_ name: String, _ sub: String) -> some View {
         HStack(spacing: 4) {
-            Text(name)
+            Text(name.opcLocalized)
                 .font(LiveType.ui(size: 10, weight: .semibold))
                 .foregroundStyle(LiveDesign.muted)
             Text(sub)
@@ -970,12 +970,12 @@ struct SettingsLiveTile: View {
                 .frame(width: 8, height: 8)
                 .shadow(color: tint.opacity(0.7), radius: 8)
             VStack(alignment: .leading, spacing: 2) {
-                Text(isLinked ? "Active Link" : "No Link")
+                Text((isLinked ? "Active Link" : "No Link").opcLocalized)
                     .font(LiveType.ui(size: 12, weight: .semibold))
                     .foregroundStyle(LiveDesign.text)
                     .lineLimit(1)
                     .fixedSize()
-                Text(isLinked ? detail : model.session.phase.label)
+                Text(isLinked ? detail : model.session.phase.opcLocalizedLabel)
                     .font(.system(size: 10.5, weight: .medium, design: .monospaced))
                     .foregroundStyle(LiveDesign.muted)
                     .lineLimit(1)
@@ -1135,7 +1135,7 @@ struct AppPanelChrome<Content: View>: View {
                         .font(LiveType.ui(size: 10, weight: .semibold, design: .rounded))
                         .tracking(1.3)
                         .foregroundStyle(StartupColors.muted)
-                    Text(title)
+                    Text(title.opcLocalized)
                         .font(LiveType.ui(size: 17, weight: .bold, design: .rounded))
                         .foregroundStyle(StartupColors.ink)
                 }

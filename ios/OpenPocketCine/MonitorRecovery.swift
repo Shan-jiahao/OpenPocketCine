@@ -40,16 +40,13 @@ struct MonitorRecoveryOverlay: View {
                 statusIcon(state: state)
                     .frame(width: 26)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(SessionRecoveryCopy.title(state))
+                    Text(SessionRecoveryCopy.title(state).opcLocalized)
                         .font(LiveType.ui(size: 16, weight: .semibold, design: .rounded))
                         .foregroundStyle(LiveDesign.text)
-                    Text(
-                        SessionRecoveryCopy.detail(
-                            state, deviceName: model.session.recoveryDeviceName)
-                    )
-                    .font(LiveType.ui(size: 12, weight: .medium))
-                    .foregroundStyle(LiveDesign.muted)
-                    .fixedSize(horizontal: false, vertical: true)
+                    Text(state.opcLocalizedDetail(deviceName: model.session.recoveryDeviceName))
+                        .font(LiveType.ui(size: 12, weight: .medium))
+                        .foregroundStyle(LiveDesign.muted)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
             }
@@ -100,7 +97,7 @@ struct MonitorRecoveryOverlay: View {
     ) -> some View {
         Button(action: action) {
             Label {
-                Text(title)
+                Text(title.opcLocalized)
             } icon: {
                 icon.frame(width: 13, height: 13)
             }
@@ -115,6 +112,6 @@ struct MonitorRecoveryOverlay: View {
             .minTapTarget()
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title)
+        .accessibilityLabel(title.opcLocalized)
     }
 }

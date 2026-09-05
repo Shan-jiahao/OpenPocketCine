@@ -52,6 +52,25 @@ import Testing
                 == nil)
     }
 
+    @Test func manuallyJoinedTargetSkipsHotspotApply() {
+        #expect(
+            CameraSoftAPSwitch.shouldUseExistingPath(
+                pathReady: true, currentSSID: "OsmoPocket4P-AAAA",
+                target: "OsmoPocket4P-AAAA"))
+        #expect(
+            CameraSoftAPSwitch.shouldUseExistingPath(
+                pathReady: true, currentSSID: nil, target: "OsmoPocket4P-AAAA"),
+            "iOS may hide the SSID when Hotspot Configuration is not provisioned")
+        #expect(
+            !CameraSoftAPSwitch.shouldUseExistingPath(
+                pathReady: false, currentSSID: "OsmoPocket4P-AAAA",
+                target: "OsmoPocket4P-AAAA"))
+        #expect(
+            !CameraSoftAPSwitch.shouldUseExistingPath(
+                pathReady: true, currentSSID: "OsmoNano-BBBB",
+                target: "OsmoPocket4P-AAAA"))
+    }
+
     @Test func ingestAfterHandshakeNotEnable() {
         #expect(!CameraSoftAP.shouldIngestLiveVideo(ingestArmed: false))
         #expect(

@@ -9,6 +9,7 @@ import UIKit
 @Observable
 final class AppModel {
     var session = CameraSession()
+    @ObservationIgnored let headphoneMotion = HeadphoneMotionBridge()
     /// Live view-space X flip: TT180 extra-mirror XOR MIRROR assist.
     var livePictureViewFlip: Bool {
         GimbalStick.liveViewFlip(
@@ -45,6 +46,34 @@ final class AppModel {
     var headTrackImuReadout = ""
     /// SET-relative (or first-sample) yaw/pitch for the live axis rings. `nil` without IMU.
     var headTrackAxisPose: HeadTrackAxisPose?
+    var headTrackAirPodsConnected = false
+    var headTrackMotionFresh = false
+    var headTrackCalibrated = false
+    var headTrackHeadYawDeg: Double?
+    var headTrackHeadPitchDeg: Double?
+    var headTrackGimbalYawDeg: Double?
+    var headTrackGimbalPitchDeg: Double?
+    var headTrackTargetYawDeg: Double?
+    var headTrackTargetPitchDeg: Double?
+    var headTrackSensitivity: Double = OperatorPrefs.headTrackSensitivity {
+        didSet { OperatorPrefs.headTrackSensitivity = headTrackSensitivity }
+    }
+    var headTrackDeadZoneDeg: Double = OperatorPrefs.headTrackDeadZoneDeg {
+        didSet { OperatorPrefs.headTrackDeadZoneDeg = headTrackDeadZoneDeg }
+    }
+    var headTrackSmoothness: Double = OperatorPrefs.headTrackSmoothness {
+        didSet { OperatorPrefs.headTrackSmoothness = headTrackSmoothness }
+    }
+    var headTrackMaxSpeedDegPerSec: Double = OperatorPrefs.headTrackMaxSpeedDegPerSec {
+        didSet { OperatorPrefs.headTrackMaxSpeedDegPerSec = headTrackMaxSpeedDegPerSec }
+    }
+    var headTrackConfiguration: HeadTrack.Configuration {
+        HeadTrack.Configuration(
+            sensitivity: headTrackSensitivity,
+            deadZoneDeg: headTrackDeadZoneDeg,
+            smoothness: headTrackSmoothness,
+            maxSpeedDegPerSec: headTrackMaxSpeedDegPerSec)
+    }
     /// On-screen gimbal stick is thrown. Head tracking yields.
     var gimbalScreenHeld = false
     /// Gamepad left stick is thrown. Head tracking yields.
@@ -331,6 +360,7 @@ final class AppModel {
 enum LiveOperatorPanel: Equatable {
     case media
     case settings
+    case headTrack
 }
 
 struct AppRoot: View {
@@ -374,6 +404,7 @@ struct AppRoot: View {
                     "Diagnostics copied — paste into TestFlight feedback"
             }
             model.prepareStartup()
+            model.headphoneMotion.attach(model: model)
             UIApplication.shared.isIdleTimerDisabled = model.keepScreenAwake
         }
         .onChange(of: model.keepScreenAwake) { _, awake in
@@ -388,15 +419,22 @@ struct AppRoot: View {
         .onChange(of: model.isLive) { _, live in
             if live {
                 model.noteBecameLive()
+                model.headphoneMotion.sync()
             } else {
+                model.headphoneMotion.noteLinkUnavailable()
                 model.noteLeftLive()
             }
+        }
+        .onChange(of: model.headTrackingEnabled) { _, _ in
+            model.headphoneMotion.sync()
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
                 model.session.noteSceneBecameActive()
+                model.headphoneMotion.sync()
             case .inactive, .background:
+                model.headphoneMotion.noteSceneBecameInactive()
                 model.session.noteSceneBecameInactive()
             @unknown default:
                 break
@@ -407,12 +445,14 @@ struct AppRoot: View {
         .onReceive(
             NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)
         ) { _ in
+            model.headphoneMotion.noteSceneBecameInactive()
             model.session.noteSceneBecameInactive()
         }
         .onReceive(
             NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
         ) { _ in
             model.session.noteSceneBecameActive()
+            model.headphoneMotion.sync()
         }
     }
 }

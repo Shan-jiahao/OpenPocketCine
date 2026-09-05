@@ -700,6 +700,10 @@ enum OperatorPrefs {
     private static let recordConfirmKey = "OpenPocketCine.RecordConfirmation"
     private static let hapticsKey = "OpenPocketCine.HapticsEnabled"
     private static let headTrackingKey = "OpenPocketCine.HeadTrackingEnabled"
+    private static let headTrackSensitivityKey = "OpenPocketCine.HeadTrack.Sensitivity"
+    private static let headTrackDeadZoneKey = "OpenPocketCine.HeadTrack.DeadZone"
+    private static let headTrackSmoothnessKey = "OpenPocketCine.HeadTrack.Smoothness"
+    private static let headTrackMaxSpeedKey = "OpenPocketCine.HeadTrack.MaxSpeed"
     private static let gimbalStickSensitivityKey = "OpenPocketCine.GimbalStickSensitivity"
     private static let dispLiveKey = "OpenPocketCine.DispChrome.Live"
     private static let dispCleanKey = "OpenPocketCine.DispChrome.Clean"
@@ -749,6 +753,43 @@ enum OperatorPrefs {
     static var headTrackingEnabled: Bool {
         get { UserDefaults.standard.bool(forKey: headTrackingKey) }
         set { UserDefaults.standard.set(newValue, forKey: headTrackingKey) }
+    }
+
+    static var headTrackSensitivity: Double {
+        get { storedDouble(headTrackSensitivityKey, default: 1, range: 0.5...2) }
+        set {
+            UserDefaults.standard.set(min(max(newValue, 0.5), 2), forKey: headTrackSensitivityKey)
+        }
+    }
+
+    static var headTrackDeadZoneDeg: Double {
+        get { storedDouble(headTrackDeadZoneKey, default: 1.5, range: 0...10) }
+        set { UserDefaults.standard.set(min(max(newValue, 0), 10), forKey: headTrackDeadZoneKey) }
+    }
+
+    static var headTrackSmoothness: Double {
+        get { storedDouble(headTrackSmoothnessKey, default: 0.35, range: 0...1) }
+        set { UserDefaults.standard.set(min(max(newValue, 0), 1), forKey: headTrackSmoothnessKey) }
+    }
+
+    static var headTrackMaxSpeedDegPerSec: Double {
+        get {
+            storedDouble(
+                headTrackMaxSpeedKey, default: HeadTrack.stickRateDegPerSec,
+                range: 10...HeadTrack.stickRateDegPerSec)
+        }
+        set {
+            UserDefaults.standard.set(
+                min(max(newValue, 10), HeadTrack.stickRateDegPerSec), forKey: headTrackMaxSpeedKey)
+        }
+    }
+
+    private static func storedDouble(
+        _ key: String, default defaultValue: Double, range: ClosedRange<Double>
+    ) -> Double {
+        guard UserDefaults.standard.object(forKey: key) != nil else { return defaultValue }
+        return min(
+            max(UserDefaults.standard.double(forKey: key), range.lowerBound), range.upperBound)
     }
 
     static var gimbalStickSensitivity: Int {
@@ -1739,7 +1780,7 @@ struct AssistToolChip: View {
         VStack(spacing: 3) {
             AssistToolIcon(tool: tool, size: 19)
                 .frame(height: 23)
-            Text(tool.rawValue)
+            Text(tool.rawValue.opcLocalized)
                 .font(.system(size: 9, weight: .medium, design: .monospaced))
                 .tracking(0.9)
                 .lineLimit(1)

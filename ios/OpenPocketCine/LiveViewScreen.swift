@@ -8,7 +8,6 @@ struct LiveViewScreen: View {
     @Environment(AppModel.self) private var model
     @State private var interfaceLocked = false
     @State private var gamepad = GimbalGamepadBridge()
-    @State private var headphones = HeadphoneMotionBridge()
     @State private var orientationObserver = InterfaceOrientationObserver()
     @State private var topMenu: LiveTopMenu?
     @State private var topPickerFrames: [LiveTopMenu: CGRect] = [:]
@@ -90,10 +89,8 @@ struct LiveViewScreen: View {
             model.session.decoder.startSimulatorSampleIfNeeded()
             model.session.isLocked = interfaceLocked
             gamepad.attach(model: model)
-            headphones.attach(model: model)
         }
         .onDisappear {
-            headphones.detach()
             gamepad.detach()
             model.session.decoder.stopSimulatorSample()
         }
@@ -101,25 +98,25 @@ struct LiveViewScreen: View {
             model.session.isLocked = locked
             if locked {
                 gamepad.noteBlocked()
-                headphones.noteBlocked()
+                model.headphoneMotion.noteBlocked()
             }
         }
         .onChange(of: model.liveOperatorPanel) { _, panel in
-            if panel != nil {
+            if panel != nil, panel != .headTrack {
                 gamepad.noteBlocked()
-                headphones.noteBlocked()
+                model.headphoneMotion.noteBlocked()
             } else {
-                headphones.sync()
+                model.headphoneMotion.sync()
             }
         }
         .onChange(of: model.headTrackingEnabled) { _, _ in
-            headphones.sync()
+            model.headphoneMotion.sync()
         }
         .onChange(of: model.isEditingChrome) { _, editing in
             if editing {
-                headphones.noteBlocked()
+                model.headphoneMotion.noteBlocked()
             } else {
-                headphones.sync()
+                model.headphoneMotion.sync()
             }
         }
         .onChange(of: model.session.gimbalLimitPulse) { _, _ in
@@ -416,7 +413,8 @@ struct LiveViewScreen: View {
                 model.liveOperatorPanel == nil
             {
                 LiveHeadTrackCalibrateButton(
-                    title: model.headTrackControlTitle, onTap: { headphones.tapControl() }
+                    title: model.headTrackControlTitle,
+                    onTap: { model.headphoneMotion.tapControl() }
                 )
                 .liveModuleFrame(layout.gimbalCalibrate)
                 .zIndex(3)
@@ -607,7 +605,8 @@ struct LiveViewScreen: View {
                 model.liveOperatorPanel == nil
             {
                 LiveHeadTrackCalibrateButton(
-                    title: model.headTrackControlTitle, onTap: { headphones.tapControl() }
+                    title: model.headTrackControlTitle,
+                    onTap: { model.headphoneMotion.tapControl() }
                 )
                 .liveModuleFrame(
                     LiveMonitorLayout.headTrackCalibrateFrame(
@@ -792,6 +791,9 @@ struct LiveViewScreen: View {
                 onClose: { model.liveOperatorPanel = nil }
             )
             .frame(width: layout.viewport.width, height: layout.viewport.height)
+        case .headTrack:
+            HeadTrackControlView(onClose: { model.liveOperatorPanel = nil })
+                .frame(width: layout.viewport.width, height: layout.viewport.height)
         }
     }
 

@@ -52,7 +52,7 @@ struct SavedCamerasView: View {
 
             VStack(spacing: 10) {
                 if model.isBusy {
-                    Text(model.session.phase.label)
+                    Text(model.session.phase.opcLocalizedLabel)
                         .font(LiveType.ui(size: 13, weight: .medium, design: .rounded))
                         .foregroundStyle(StartupColors.muted)
                     Button {

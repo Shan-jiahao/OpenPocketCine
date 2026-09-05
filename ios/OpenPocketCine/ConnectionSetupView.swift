@@ -6,6 +6,7 @@ import SwiftUI
 struct ConnectionSetupView: View {
     @Environment(AppModel.self) private var model
     let compact: Bool
+    var pocketOnly = false
 
     private var phase: ConnectionPhase { model.session.phase }
     private var step: Int { phase.pocketWizardStep }
@@ -110,11 +111,15 @@ struct ConnectionSetupView: View {
 
     private var stepCard: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("STEP \(step) OF \(ConnectionPhase.pocketWizardStepCount)")
-                .font(LiveType.ui(size: 11, weight: .semibold, design: .rounded))
-                .tracking(1.4)
-                .foregroundStyle(StartupColors.muted)
-            Text(stepTitle)
+            Text(
+                String(
+                    format: "STEP %@ OF %@".opcLocalized,
+                    "\(step)", "\(ConnectionPhase.pocketWizardStepCount)")
+            )
+            .font(LiveType.ui(size: 11, weight: .semibold, design: .rounded))
+            .tracking(1.4)
+            .foregroundStyle(StartupColors.muted)
+            Text(stepTitle.opcLocalized)
                 .font(LiveType.ui(size: tight ? 22 : 25, weight: .bold, design: .rounded))
                 .foregroundStyle(StartupColors.ink)
                 .padding(.top, 6)
@@ -173,8 +178,7 @@ struct ConnectionSetupView: View {
             if model.session.found.isEmpty {
                 StartupEmptyDiscoveryCard(
                     title: model.isScanning ? "Looking for cameras" : "No cameras yet",
-                    hint:
-                        "Turn the camera on and keep the phone nearby. Pocket and Nano both appear — tap the one you want.",
+                    hint: discoveryHint,
                     compact: tight
                 )
                 StartupIndeterminateBar()
@@ -230,7 +234,7 @@ struct ConnectionSetupView: View {
             HStack(spacing: 10) {
                 ProgressView()
                     .tint(StartupColors.accent)
-                Text(phase.label)
+                Text(phase.opcLocalizedLabel)
                     .font(LiveType.ui(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(StartupColors.ink)
             }
@@ -264,20 +268,36 @@ struct ConnectionSetupView: View {
                     title: "On iPhone",
                     icon: .smartphone,
                     steps: [
-                        "Tap Join when iOS asks to join the camera network",
-                        "Stay on this screen until we open the datalink",
+                        "If iOS shows a Join prompt, tap Join",
+                        manualWiFiInstruction,
+                        "Return after the Wi-Fi checkmark appears — the app continues automatically",
                     ]
                 ),
                 tight: tight
             )
+            if model.session.wifiJoinNeedsManualAction {
+                StartupWizardInfoBanner(
+                    text:
+                        "Automatic Wi-Fi join is unavailable in this development build. Connect in iPhone Settings, then return here."
+                        .opcLocalized,
+                    tight: tight
+                )
+            }
             HStack(spacing: 10) {
                 ProgressView()
                     .tint(StartupColors.accent)
-                Text(phase.label)
+                Text(phase.opcLocalizedLabel)
                     .font(LiveType.ui(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(StartupColors.ink)
             }
         }
+    }
+
+    private var manualWiFiInstruction: String {
+        let target = model.session.joiningSSID ?? "the camera network".opcLocalized
+        return String(
+            format: "If no prompt appears, open Settings → Wi-Fi and connect to %@".opcLocalized,
+            target)
     }
 
     private var datalinkStep: some View {
@@ -288,10 +308,10 @@ struct ConnectionSetupView: View {
                     .tint(StartupColors.accent)
                 StartupIconSquare(icon: .aperture, size: 48)
             }
-            Text("Opening the video link…")
+            Text(pocketOnly ? "正在打开控制链路……" : "Opening the video link…")
                 .font(LiveType.ui(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(StartupColors.ink)
-            Text(phase.label)
+            Text(phase.opcLocalizedLabel)
                 .font(LiveType.ui(size: 13, weight: .regular, design: .rounded))
                 .foregroundStyle(StartupColors.muted)
         }
@@ -331,4 +351,12 @@ struct ConnectionSetupView: View {
         "If the Pocket asks you to Approve, tap it on the camera screen.",
         "Join the camera Wi-Fi when iOS prompts, then we open the datalink.",
     ]
+
+    private var discoveryHint: String {
+        if pocketOnly {
+            return "打开 Pocket 并让手机保持在附近，设备出现后点击连接。"
+        }
+        return
+            "Turn the camera on and keep the phone nearby. Pocket and Nano both appear — tap the one you want."
+    }
 }
