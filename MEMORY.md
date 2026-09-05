@@ -19,6 +19,13 @@ Never store secrets, camera credentials, captures, or personal data here.
 - 2026-09-04: Simplified Chinese copy should explain specialist terms in plain
   Chinese while retaining useful industry abbreviations such as BLE, HEVC,
   DUML, LUT, IRE, ETTR, ISO, and FPS for cross-reference with camera menus.
+- 2026-09-05: The supported-headphone list is guidance sourced from Apple's
+  current dynamic-head-tracking documentation. Never gate Pocket head tracking
+  by model name: `CMHeadphoneMotionManager` availability plus receipt of a live
+  motion sample remains the source of truth.
+- 2026-09-05: Fast, Standard, and Gentle head-tracking presets only select the
+  existing sensitivity, dead-zone, smoothing, and maximum-speed inputs. They
+  must not fork or retune the `HeadTrack` controller itself.
 
 ## Operations
 
@@ -37,6 +44,11 @@ Never store secrets, camera credentials, captures, or personal data here.
   code 8 when it attempts automatic SoftAP configuration. Treat that as a
   manual-join flow: preserve the target network, show its SSID, poll for the
   camera DHCP path, and resume without another pairing tap.
+- 2026-09-05: A physical iPhone can report headphone motion as available and
+  active while producing no first sample after a lifecycle transition. A clean
+  restart plus bounded push retries and the Core Motion pull path is the
+  approved recovery; re-wearing an earbud and playing audio restored samples
+  during hardware validation.
 - 2026-09-05: `Pocket助手` is a separate Chinese-first iPhone app target. Head
   tracking is its primary workflow; gimbal, capture, and device connection are
   supporting tabs. It has no monitor or media workflow and reuses the existing

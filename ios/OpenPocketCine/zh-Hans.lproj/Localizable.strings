@@ -85,6 +85,7 @@
 "Ready" = "就绪";
 "Unavailable" = "不可用";
 "Gimbal" = "云台";
+"Gimbal re-centered" = "云台已回中";
 "Waiting for attitude" = "等待姿态数据";
 "HEAD YAW" = "头部航向";
 "HEAD PITCH" = "头部俯仰";

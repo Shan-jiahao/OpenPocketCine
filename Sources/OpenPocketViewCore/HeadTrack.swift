@@ -92,6 +92,37 @@ public struct HeadTrack: Equatable, Sendable {
         }
     }
 
+    /// Operator-facing response profiles. They only select existing controller
+    /// inputs; the tracking and gimbal-control algorithm remains unchanged.
+    public enum ResponsePreset: String, CaseIterable, Sendable {
+        case fast
+        case standard
+        case gentle
+
+        public var configuration: Configuration {
+            switch self {
+            case .fast:
+                Configuration(
+                    sensitivity: 1.3,
+                    deadZoneDeg: 0.5,
+                    smoothness: 0.15,
+                    maxSpeedDegPerSec: HeadTrack.stickRateDegPerSec)
+            case .standard:
+                Configuration(
+                    sensitivity: 1,
+                    deadZoneDeg: 1.5,
+                    smoothness: 0.35,
+                    maxSpeedDegPerSec: HeadTrack.stickRateDegPerSec)
+            case .gentle:
+                Configuration(
+                    sensitivity: 0.8,
+                    deadZoneDeg: 2.5,
+                    smoothness: 0.65,
+                    maxSpeedDegPerSec: 35)
+            }
+        }
+    }
+
     public static func gyroMagnitude(lookRight: Double, lookUp: Double, yaw: Double = 0)
         -> Double
     {

@@ -42,7 +42,11 @@ project with XcodeGen — see [Setup](../guides/setup/).
   Operator Setup → Controls → HeadTrack Control opens a dedicated control
   surface that covers the video while keeping the camera link active. It shows
   AirPods, Pocket, datalink, and gimbal readiness; head, gimbal, and target
-  yaw/pitch; and Sensitivity, Dead Zone, Smoothness, and Max Speed. AirPods or
+  yaw/pitch; and Sensitivity, Dead Zone, Smoothness, and Max Speed. Pocket
+  Assistant additionally
+  exposes Apple's supported dynamic-head-tracking headphone list, a pre-lock
+  gimbal recenter action, and Fast / Standard / Gentle response presets without
+  replacing the detailed controls. AirPods or
   camera-link loss, a 250 ms motion timeout, and app backgrounding immediately
   rest the gimbal and require a new calibration.
   Cross/A records. Circle/B recenters. Square/X is rotate-180. Triangle/Y

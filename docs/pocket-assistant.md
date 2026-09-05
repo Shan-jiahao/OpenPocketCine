@@ -16,7 +16,8 @@ fork the protocol implementation or add another PID controller.
 The app has four stable tabs:
 
 1. **头追** — readiness, AirPods/Pocket/datalink/gimbal state, calibration and
-   STOP, head/gimbal/target angles, and response tuning.
+   STOP, head/gimbal/target angles, gimbal recenter, supported-headphone help,
+   and quick or detailed response tuning.
 2. **云台** — a touch joystick, recenter, rotate 180°, pose readout, and stick
    sensitivity.
 3. **拍摄** — recording control plus current battery, storage, capture mode,
@@ -36,6 +37,11 @@ The app has four stable tabs:
 - Connection success persists the camera and moves the operator to Head Track.
 - Connection loss, AirPods loss, stale motion, app inactive/background, or an
   explicit STOP immediately rests the existing gimbal stream.
+- The AirPods motion stream is stopped when the scene becomes inactive and is
+  started cleanly on return. If an active Core Motion stream produces no first
+  sample after authorization or an in-ear transition, the app performs up to
+  three bounded push-stream restarts, falls back to the API's 25 Hz pull path,
+  and then shows an actionable in-ear/retry message if both paths stay empty.
 - A Personal Team build keeps the manual Settings → Wi-Fi fallback. A paid-team
   build can retain automatic Hotspot Configuration without UI changes.
 
@@ -59,8 +65,10 @@ coverage; that refactor is not required for product separation.
 - Every Pocket Assistant product surface is Chinese and no monitor screen is
   reachable.
 - A user can pair/reconnect a Pocket, enter live datalink, calibrate head lock,
-  stop it, tune the four response parameters, move/recenter/flip the gimbal,
-  and start/stop recording without a video surface.
+  stop it, recenter before calibration, choose Fast/Standard/Gentle response
+  presets or tune the four detailed parameters, inspect Apple's current
+  dynamic-head-tracking headphone list, move/flip the gimbal, and start/stop
+  recording without a video surface.
 - Head tracking stops safely for all lifecycle/link/motion failure cases.
 - Existing HeadTrack and iOS unit tests pass; both iOS schemes build for the
   simulator; the Pocket Assistant target produces a signed device build ready

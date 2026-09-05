@@ -64,6 +64,26 @@ private struct PocketSim {
         }
     }
 
+    @Test func responsePresetsSelectExistingConfigurationInputs() {
+        let fast = HeadTrack.ResponsePreset.fast.configuration
+        #expect(fast.sensitivity == 1.3)
+        #expect(fast.deadZoneDeg == 0.5)
+        #expect(fast.smoothness == 0.15)
+        #expect(fast.maxSpeedDegPerSec == HeadTrack.stickRateDegPerSec)
+
+        let standard = HeadTrack.ResponsePreset.standard.configuration
+        #expect(standard.sensitivity == 1)
+        #expect(standard.deadZoneDeg == 1.5)
+        #expect(standard.smoothness == 0.35)
+        #expect(standard.maxSpeedDegPerSec == HeadTrack.stickRateDegPerSec)
+
+        let gentle = HeadTrack.ResponsePreset.gentle.configuration
+        #expect(gentle.sensitivity == 0.8)
+        #expect(gentle.deadZoneDeg == 2.5)
+        #expect(gentle.smoothness == 0.65)
+        #expect(gentle.maxSpeedDegPerSec == 35)
+    }
+
     /// Head swings 20° right and parks. 17:10 take: the telemetry-closed
     /// loop blew ~9° past and bobbed (body 27.9→38.3→27.5→26.3). The
     /// model-closed loop must arrive without a swing-back cycle.
