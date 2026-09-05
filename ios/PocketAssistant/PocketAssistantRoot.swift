@@ -2,10 +2,9 @@ import SwiftUI
 import UIKit
 
 enum PocketAssistantTab: Hashable {
-    case headTrack
-    case gimbal
-    case capture
     case devices
+    case capture
+    case headTrack
 }
 
 struct PocketAssistantRoot: View {
@@ -17,20 +16,10 @@ struct PocketAssistantRoot: View {
     var body: some View {
         TabView(selection: $selection) {
             NavigationStack {
-                PocketAssistantHeadTrackView {
-                    selection = .devices
-                }
+                PocketAssistantDevicesView()
             }
-            .tag(PocketAssistantTab.headTrack)
-            .tabItem { Label("头追", systemImage: "viewfinder") }
-
-            NavigationStack {
-                PocketAssistantGimbalView {
-                    selection = .devices
-                }
-            }
-            .tag(PocketAssistantTab.gimbal)
-            .tabItem { Label("云台", systemImage: "move.3d") }
+            .tag(PocketAssistantTab.devices)
+            .tabItem { Label("设备", systemImage: "camera.fill") }
 
             NavigationStack {
                 PocketAssistantCaptureView {
@@ -41,14 +30,15 @@ struct PocketAssistantRoot: View {
             .tabItem { Label("拍摄", systemImage: "record.circle") }
 
             NavigationStack {
-                PocketAssistantDevicesView()
+                PocketAssistantHeadTrackView {
+                    selection = .devices
+                }
             }
-            .tag(PocketAssistantTab.devices)
-            .tabItem { Label("设备", systemImage: "camera.fill") }
+            .tag(PocketAssistantTab.headTrack)
+            .tabItem { Label("头追", systemImage: "viewfinder") }
         }
         .tint(PocketAssistantDesign.primary)
         .environment(model)
-        .preferredColorScheme(.dark)
         .onAppear { startIfNeeded() }
         .onChange(of: model.keepScreenAwake) { _, awake in
             UIApplication.shared.isIdleTimerDisabled = awake

@@ -42,7 +42,6 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
         INFOPLIST_KEY_UIViewControllerBasedStatusBarAppearance: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "Pocket助手使用蓝牙发现并配对 Pocket 相机，并获取相机 Wi-Fi 信息。"

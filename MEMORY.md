@@ -49,9 +49,10 @@ Never store secrets, camera credentials, captures, or personal data here.
   restart plus bounded push retries and the Core Motion pull path is the
   approved recovery; re-wearing an earbud and playing audio restored samples
   during hardware validation.
-- 2026-09-05: `Pocket助手` is a separate Chinese-first iPhone app target. Head
-  tracking is its primary workflow; gimbal, capture, and device connection are
-  supporting tabs. It has no monitor or media workflow and reuses the existing
-  Pocket connection/control stack and HeadTrack controller without protocol or
-  PID forks. See `docs/pocket-assistant.md`.
+- 2026-09-05: `Pocket助手` is a separate Chinese-first iPhone app target. Its
+  stable tab order is Devices, Capture, Head Track; Capture owns the compact
+  record and gimbal controls, and the app follows the iPhone system appearance.
+  It has no monitor or media workflow and reuses the existing Pocket
+  connection/control stack and HeadTrack controller without protocol or PID
+  forks. See `docs/pocket-assistant.md`.
 - Remove obsolete entries through a reviewed change to this file.

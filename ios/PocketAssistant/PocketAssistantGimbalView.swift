@@ -1,27 +1,15 @@
 import SwiftUI
 
-struct PocketAssistantGimbalView: View {
+struct PocketAssistantGimbalControls: View {
     @Environment(AppModel.self) private var model
-    let openDevices: () -> Void
 
     var body: some View {
-        ZStack {
-            PocketAssistantBackground()
-            ScrollView {
-                VStack(spacing: 16) {
-                    PocketAssistantLinkBanner(action: openDevices)
-                    controlCard
-                    poseCard
-                    sensitivityCard
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .padding(.bottom, 28)
-            }
+        VStack(spacing: 16) {
+            controlCard
+            poseCard
+            sensitivityCard
         }
-        .navigationTitle("云台控制")
-        .navigationBarTitleDisplayMode(.large)
-        .accessibilityIdentifier("pocketAssistant.gimbal")
+        .accessibilityIdentifier("pocketAssistant.capture.gimbalControls")
     }
 
     private var controlCard: some View {
@@ -34,7 +22,7 @@ struct PocketAssistantGimbalView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 PocketAssistantGimbalPad(enabled: model.session.isControlLinkReady)
-                    .frame(width: 250, height: 250)
+                    .frame(width: 224, height: 224)
                     .frame(maxWidth: .infinity)
 
                 HStack(spacing: 12) {
@@ -128,7 +116,7 @@ private struct PocketAssistantGimbalPad: View {
             let travel = (side - knobSize) * 0.46
             ZStack {
                 Circle()
-                    .fill(PocketAssistantDesign.background.opacity(0.72))
+                    .fill(PocketAssistantDesign.controlWell)
                 Circle()
                     .stroke(PocketAssistantDesign.primary.opacity(0.2), lineWidth: 1)
                     .padding(side * 0.19)
@@ -149,7 +137,7 @@ private struct PocketAssistantGimbalPad: View {
                         )
                     )
                     .frame(width: knobSize, height: knobSize)
-                    .overlay(Circle().stroke(Color.white.opacity(0.22), lineWidth: 1))
+                    .overlay(Circle().stroke(PocketAssistantDesign.knobBorder, lineWidth: 1))
                     .shadow(color: PocketAssistantDesign.primary.opacity(0.38), radius: 14)
                     .offset(knobOffset)
             }

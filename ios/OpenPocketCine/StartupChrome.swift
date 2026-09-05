@@ -1,35 +1,73 @@
 import OpenPocketViewCore
 import SwiftUI
+import UIKit
 
 enum StartupColors {
-    /// DJI Black / Titan pairing chrome — Sky Blue accent, no Nikon gold.
-    static let background = Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255)
-    static let surface = Color(red: 28 / 255, green: 28 / 255, blue: 28 / 255)
-    static let tile = Color(red: 36 / 255, green: 36 / 255, blue: 36 / 255)
-    static let control = Color(red: 94 / 255, green: 98 / 255, blue: 98 / 255)
-    static let ink = Color.white
-    static let muted = Color(red: 160 / 255, green: 165 / 255, blue: 165 / 255)
-    static let dim = Color(red: 94 / 255, green: 98 / 255, blue: 98 / 255)
-    static let border = Color.white
-    static let card = surface.opacity(0.58)
-    static let accent = Color(red: 0, green: 163 / 255, blue: 230 / 255)
-    static let ready = Color(red: 0.247, green: 0.710, blue: 0.416)
-    static let destructive = Color(red: 0.930, green: 0.267, blue: 0.267)
-    static let darkText = Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255)
+    /// The monitor stays DJI Black; Pocket Assistant resolves the same tokens
+    /// against iOS light appearance when it embeds the pairing flow.
+    static let background = adaptive(
+        light: .systemGroupedBackground,
+        dark: UIColor(red: 20 / 255, green: 20 / 255, blue: 20 / 255, alpha: 1)
+    )
+    static let surface = adaptive(
+        light: .secondarySystemGroupedBackground,
+        dark: UIColor(red: 28 / 255, green: 28 / 255, blue: 28 / 255, alpha: 1)
+    )
+    static let tile = adaptive(
+        light: .tertiarySystemGroupedBackground,
+        dark: UIColor(red: 36 / 255, green: 36 / 255, blue: 36 / 255, alpha: 1)
+    )
+    static let control = adaptive(
+        light: .systemGray4,
+        dark: UIColor(red: 94 / 255, green: 98 / 255, blue: 98 / 255, alpha: 1)
+    )
+    static let ink = adaptive(light: .label, dark: .white)
+    static let muted = adaptive(
+        light: .secondaryLabel,
+        dark: UIColor(red: 160 / 255, green: 165 / 255, blue: 165 / 255, alpha: 1)
+    )
+    static let dim = adaptive(
+        light: .tertiaryLabel,
+        dark: UIColor(red: 94 / 255, green: 98 / 255, blue: 98 / 255, alpha: 1)
+    )
+    static let border = adaptive(light: .label, dark: .white)
+    static let card = adaptive(
+        light: .secondarySystemGroupedBackground,
+        dark: UIColor(red: 28 / 255, green: 28 / 255, blue: 28 / 255, alpha: 0.58)
+    )
+    static let accent = adaptive(
+        light: UIColor(red: 0, green: 0.40, blue: 0.62, alpha: 1),
+        dark: UIColor(red: 0, green: 163 / 255, blue: 230 / 255, alpha: 1)
+    )
+    static let ready = adaptive(
+        light: UIColor(red: 0.08, green: 0.50, blue: 0.24, alpha: 1),
+        dark: UIColor(red: 0.247, green: 0.710, blue: 0.416, alpha: 1)
+    )
+    static let destructive = adaptive(
+        light: .systemRed,
+        dark: UIColor(red: 0.930, green: 0.267, blue: 0.267, alpha: 1)
+    )
+    static let darkText = adaptive(light: .white, dark: UIColor(white: 20 / 255, alpha: 1))
 
     static var backdrop: some View {
         ZStack {
-            Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255)
+            background
             RadialGradient(
                 colors: [
-                    Color(red: 0, green: 163 / 255, blue: 230 / 255).opacity(0.10),
-                    Color(red: 20 / 255, green: 20 / 255, blue: 20 / 255).opacity(0),
+                    accent.opacity(0.10),
+                    background.opacity(0),
                 ],
                 center: UnitPoint(x: 0.5, y: 0.24),
                 startRadius: 8,
                 endRadius: 760
             )
         }
+    }
+
+    private static func adaptive(light: UIColor, dark: UIColor) -> Color {
+        Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark ? dark : light
+        })
     }
 }
 

@@ -1,17 +1,35 @@
 import SwiftUI
+import UIKit
 
 enum PocketAssistantDesign {
-    static let background = Color(red: 0.035, green: 0.045, blue: 0.06)
-    static let surface = Color(red: 0.075, green: 0.09, blue: 0.115)
-    static let raised = Color(red: 0.105, green: 0.125, blue: 0.155)
-    static let border = Color.white.opacity(0.09)
-    static let primary = Color(red: 0.12, green: 0.76, blue: 0.98)
-    static let primaryDeep = Color(red: 0.08, green: 0.45, blue: 0.96)
-    static let success = Color(red: 0.23, green: 0.82, blue: 0.57)
-    static let warning = Color(red: 1.0, green: 0.69, blue: 0.25)
-    static let danger = Color(red: 1.0, green: 0.27, blue: 0.32)
-    static let text = Color.white.opacity(0.96)
-    static let secondary = Color.white.opacity(0.62)
+    static let background = Color(uiColor: .systemGroupedBackground)
+    static let surface = Color(uiColor: .secondarySystemGroupedBackground)
+    static let raised = Color(uiColor: .tertiarySystemGroupedBackground)
+    static let border = Color(uiColor: .separator).opacity(0.45)
+    static let primary = adaptive(
+        light: UIColor(red: 0.0, green: 0.43, blue: 0.68, alpha: 1),
+        dark: UIColor(red: 0.12, green: 0.76, blue: 0.98, alpha: 1)
+    )
+    static let primaryDeep = adaptive(
+        light: UIColor(red: 0.02, green: 0.35, blue: 0.82, alpha: 1),
+        dark: UIColor(red: 0.08, green: 0.45, blue: 0.96, alpha: 1)
+    )
+    static let success = Color(uiColor: .systemGreen)
+    static let warning = Color(uiColor: .systemOrange)
+    static let danger = Color(uiColor: .systemRed)
+    static let text = Color(uiColor: .label)
+    static let secondary = Color(uiColor: .secondaryLabel)
+    static let inactive = Color(uiColor: .tertiaryLabel)
+    static let controlWell = Color(uiColor: .systemFill)
+    static let knobBorder = Color.white.opacity(0.3)
+    static let recordRing = Color(uiColor: .label).opacity(0.82)
+    static let onPrimary = adaptive(light: .white, dark: .black).opacity(0.82)
+
+    private static func adaptive(light: UIColor, dark: UIColor) -> Color {
+        Color(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark ? dark : light
+        })
+    }
 }
 
 struct PocketAssistantBackground: View {
@@ -79,7 +97,7 @@ struct PocketAssistantStatusDot: View {
     var body: some View {
         HStack(spacing: 10) {
             Circle()
-                .fill(ready ? PocketAssistantDesign.success : Color.white.opacity(0.2))
+                .fill(ready ? PocketAssistantDesign.success : PocketAssistantDesign.inactive)
                 .frame(width: 9, height: 9)
                 .shadow(
                     color: ready ? PocketAssistantDesign.success.opacity(0.55) : .clear,

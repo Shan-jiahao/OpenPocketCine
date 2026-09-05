@@ -135,7 +135,7 @@ struct PocketAssistantDevicesView: View {
                         .frame(maxWidth: .infinity, minHeight: 46)
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(PocketAssistantDesign.background)
+                .foregroundStyle(PocketAssistantDesign.onPrimary)
                 .background(PocketAssistantDesign.primary, in: RoundedRectangle(cornerRadius: 14))
                 .disabled(model.isBusy || model.session.isControlLinkReady)
                 .opacity(model.isBusy || model.session.isControlLinkReady ? 0.42 : 1)
@@ -222,7 +222,7 @@ struct PocketAssistantDevicesView: View {
         HStack(alignment: .top, spacing: 11) {
             Text(number)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(PocketAssistantDesign.background)
+                .foregroundStyle(PocketAssistantDesign.onPrimary)
                 .frame(width: 23, height: 23)
                 .background(PocketAssistantDesign.primary, in: Circle())
             Text(text)

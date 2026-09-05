@@ -474,7 +474,7 @@ private struct HeadDirectionIndicator: View {
                     .fill(PocketAssistantDesign.border)
                     .frame(width: 1, height: side * 0.76)
                 Circle()
-                    .fill(active ? PocketAssistantDesign.primary : Color.white.opacity(0.22))
+                    .fill(active ? PocketAssistantDesign.primary : PocketAssistantDesign.inactive)
                     .frame(width: 22, height: 22)
                     .shadow(
                         color: PocketAssistantDesign.primary.opacity(active ? 0.65 : 0), radius: 12

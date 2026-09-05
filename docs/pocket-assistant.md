@@ -13,17 +13,17 @@ fork the protocol implementation or add another PID controller.
 
 ## Information architecture
 
-The app has four stable tabs:
+The app has three stable tabs, ordered around the normal setup-to-shoot flow:
 
-1. **头追** — readiness, AirPods/Pocket/datalink/gimbal state, calibration and
+1. **设备** — first pairing, saved-camera reconnect, disconnect/forget, current
+   connection stage, and practical Wi-Fi guidance.
+2. **拍摄** — a compact recording control, touch gimbal joystick, recenter,
+   rotate 180°, gimbal pose and stick sensitivity, plus current battery,
+   storage, capture mode, video format, color, and exposure summaries. No
+   picture is rendered.
+3. **头追** — readiness, AirPods/Pocket/datalink/gimbal state, calibration and
    STOP, head/gimbal/target angles, gimbal recenter, supported-headphone help,
    and quick or detailed response tuning.
-2. **云台** — a touch joystick, recenter, rotate 180°, pose readout, and stick
-   sensitivity.
-3. **拍摄** — recording control plus current battery, storage, capture mode,
-   video format, color, and exposure summaries. No picture is rendered.
-4. **设备** — first pairing, saved-camera reconnect, disconnect/forget, current
-   connection stage, and practical Wi-Fi guidance.
 
 ## Architecture
 
@@ -35,6 +35,9 @@ The app has four stable tabs:
   and AirPods motion state in this iteration. Pocket Assistant mounts them at
   app level and never mounts `LiveViewScreen`.
 - Connection success persists the camera and moves the operator to Head Track.
+- The app uses iOS semantic surfaces, labels, separators, and controls so light
+  and dark appearance follow the iPhone system setting without an app restart;
+  this includes the shared first-pair connection flow.
 - Connection loss, AirPods loss, stale motion, app inactive/background, or an
   explicit STOP immediately rests the existing gimbal stream.
 - The AirPods motion stream is stopped when the scene becomes inactive and is
@@ -67,8 +70,10 @@ coverage; that refactor is not required for product separation.
 - A user can pair/reconnect a Pocket, enter live datalink, calibrate head lock,
   stop it, recenter before calibration, choose Fast/Standard/Gentle response
   presets or tune the four detailed parameters, inspect Apple's current
-  dynamic-head-tracking headphone list, move/flip the gimbal, and start/stop
-  recording without a video surface.
+  dynamic-head-tracking headphone list, move/flip the gimbal and start/stop
+  recording from the combined Capture tab without a video surface.
+- The tab order is Devices, Capture, Head Track; there is no separate Gimbal
+  tab. Light and dark appearance both remain readable and track system changes.
 - Head tracking stops safely for all lifecycle/link/motion failure cases.
 - Existing HeadTrack and iOS unit tests pass; both iOS schemes build for the
   simulator; the Pocket Assistant target produces a signed device build ready

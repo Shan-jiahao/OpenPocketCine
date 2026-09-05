@@ -12,6 +12,7 @@ struct PocketAssistantCaptureView: View {
                 VStack(spacing: 16) {
                     PocketAssistantLinkBanner(action: openDevices)
                     recordCard
+                    PocketAssistantGimbalControls()
                     cameraStateCard
                     formatCard
                 }
@@ -20,52 +21,50 @@ struct PocketAssistantCaptureView: View {
                 .padding(.bottom, 28)
             }
         }
-        .navigationTitle("拍摄助手")
+        .navigationTitle("拍摄与云台")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier("pocketAssistant.capture")
     }
 
     private var recordCard: some View {
         PocketAssistantCard {
-            VStack(spacing: 18) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(captureTitle)
-                            .font(.title3.weight(.bold))
-                            .foregroundStyle(PocketAssistantDesign.text)
-                        Text(captureDetail)
-                            .font(.footnote)
-                            .foregroundStyle(PocketAssistantDesign.secondary)
-                    }
-                    Spacer()
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(captureTitle)
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(PocketAssistantDesign.text)
+                    Text(captureDetail)
+                        .font(.footnote)
+                        .foregroundStyle(PocketAssistantDesign.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if model.session.status.isRecording {
                         Text(Self.clock(model.session.status.recordElapsedSec))
                             .font(.headline.monospacedDigit())
                             .foregroundStyle(PocketAssistantDesign.danger)
                     }
                 }
+                Spacer(minLength: 4)
 
                 Button {
                     model.session.pressShutter()
                 } label: {
                     ZStack {
                         Circle()
-                            .stroke(Color.white.opacity(0.9), lineWidth: 4)
-                            .frame(width: 86, height: 86)
+                            .stroke(PocketAssistantDesign.recordRing, lineWidth: 3)
+                            .frame(width: 64, height: 64)
                         RoundedRectangle(
-                            cornerRadius: model.session.status.isRecording ? 8 : 36,
+                            cornerRadius: model.session.status.isRecording ? 6 : 24,
                             style: .continuous
                         )
                         .fill(PocketAssistantDesign.danger)
                         .frame(
-                            width: model.session.status.isRecording ? 34 : 68,
-                            height: model.session.status.isRecording ? 34 : 68
+                            width: model.session.status.isRecording ? 24 : 48,
+                            height: model.session.status.isRecording ? 24 : 48
                         )
                         .animation(
                             .easeInOut(duration: 0.18), value: model.session.status.isRecording)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .frame(width: 68, height: 68)
                 }
                 .buttonStyle(.plain)
                 .disabled(!model.session.isControlLinkReady || model.session.controlBusy)

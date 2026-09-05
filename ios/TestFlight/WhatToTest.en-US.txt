@@ -1,6 +1,6 @@
 New and changed
 
-- Pocket Assistant is a separate Chinese-first iPhone app with no video monitor. Head Track now includes a supported-headphones sheet, a pre-calibration gimbal recenter button, and Fast / Standard / Gentle response presets while keeping all four detailed controls.
+- Pocket Assistant now uses three tabs in Devices / Capture / Head Track order. Capture combines a compact record button with gimbal controls, and the UI follows the iPhone's light or dark appearance. Head Track includes supported-headphones help, gimbal recenter, and Fast / Standard / Gentle presets.
 - Gamepad: left stick drives the gimbal; Cross/A records, Circle/B recenters, Square/X rotates 180°, Triangle/Y tracks/cancels, L1/R1 jumps zoom, L2/R2 holds zoom, and D-pad changes ISO/shutter. Unplug rests the stick; reaching a gimbal stop taps once.
 - Experimental head tracking is in Operator Setup → Controls. Wear motion-capable AirPods, go live, hold still and calibrate. Head turn pans 1:1; nod tilts; roll is read-only. STOP clears the lock.
 - The on-screen gimbal stick uses the same gradual speed.
@@ -19,8 +19,8 @@ Fixes
 
 What to test
 
-- In Pocket Assistant, open Head Track → View supported headphones and verify the Chinese AirPods/Beats list. Before calibration, tap Gimbal recenter. Select Fast, Standard, and Gentle and confirm all four sliders update; changing a slider should leave every preset unselected. Re-wear connected AirPods and play audio: AirPods should reach Motion data ready without relaunching the app.
+- In Pocket Assistant, verify the Devices / Capture / Head Track tab order. In Capture, test the compact record control, joystick, recenter, rotate 180°, pose, and speed. Switch iPhone Appearance between Light and Dark while the app is open; every page should update immediately and remain readable.
+- Open Head Track → View supported headphones and verify the Chinese AirPods/Beats list. Before calibration, tap Gimbal recenter. Select Fast, Standard, and Gentle and confirm all four sliders update; changing a slider should leave every preset unselected. Re-wear connected AirPods and play audio: AirPods should reach Motion data ready without relaunching the app.
 - Pair, go live, and stay two minutes with LUT/waveform. Pan, zoom, record, change FORMAT/COLOR, and track a subject. Set Zebra Highlight to 95 in portrait and landscape. Frozen picture with live timecode is a bug; Reconnecting must hold the last picture.
-- With an extended gamepad, verify every control above. A stop buzzes once; unplug rests the stick and shows a toast.
 - On Pocket 4 Pro in D-Log2 (idle): press R2 or pinch. COLOR switches to D-Log first, then the picture zooms. On a Pocket 3, open ISO and switch to Auto: ranges read 50–400 and up, same as the camera. Pocket 4 Pro still starts at 100.
 - Tap Share Diagnostics before pairing. Record a take, open it with LUT, and share the original. Return from Library and Setup, then power-cycle: live view must return while the last picture is held.

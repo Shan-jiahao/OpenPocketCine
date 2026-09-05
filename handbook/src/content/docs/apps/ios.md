@@ -46,7 +46,9 @@ project with XcodeGen — see [Setup](../guides/setup/).
   Assistant additionally
   exposes Apple's supported dynamic-head-tracking headphone list, a pre-lock
   gimbal recenter action, and Fast / Standard / Gentle response presets without
-  replacing the detailed controls. AirPods or
+  replacing the detailed controls. Its tabs are Devices, Capture, and Head
+  Track. Capture combines a compact record button with the touch gimbal
+  controls, and the app follows the iPhone's light or dark appearance. AirPods or
   camera-link loss, a 250 ms motion timeout, and app backgrounding immediately
   rest the gimbal and require a new calibration.
   Cross/A records. Circle/B recenters. Square/X is rotate-180. Triangle/Y
